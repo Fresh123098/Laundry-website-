@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Laundry Multi‑Client</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f0f4f8; color: #1e293b; }
+    .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
+    .login-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 90%; max-width: 400px; text-align: center; }
+    .login-card h2 { margin-bottom: 20px; }
+    .tab-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    .tab-btn.active { background: #0f2b4b; color: white; }
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; }
+    .btn { padding: 12px 20px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-primary { background: #0f2b4b; color: white; }
+    .btn-outline { background: none; border: 2px solid #0f2b4b; color: #0f2b4b; padding: 10px 20px; }
+    .header { background: #0f2b4b; color: white; padding: 30px 15px; text-align: center; }
+    .logo-img { max-height: 90px; display: none; margin: 0 auto 8px; }
+    .logo-text { font-size: 3rem; fontWeight: 800; text-transform: uppercase; line-height: 1.2; }
+    .sub { font-size: 1.2rem; opacity: 0.9; }
+    .staff-badge { background: #f59e0b; color: #000; font-size: 0.8rem; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-left: 10px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex-wrap: wrap; gap: 10px; }
+    .top-bar .datetime { font-weight: 600; }
+    .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 5px 10px; border-radius: 10px; }
+    .icon-btn:hover { background: #e2e8f0; }
+    .search-container { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 200px; }
+    .search-container input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; }
+    .quick-add-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; white-space: nowrap; }
+    .toggle-switch { width: 40px; height: 22px; background: #ccc; border-radius: 11px; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-switch.active { background: #0f2b4b; }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: left 0.2s; }
+    .toggle-switch.active::after { left: 20px; }
+    .main-area { display: flex; flex: 1; }
+    .items-section { flex: 1; overflow-y: auto; }
+    .tabs { display: flex; gap: 10px; overflow-x: auto; padding: 15px; background: white; border-bottom: 1px solid #e2e8f0; }
+    .tab { padding: 8px 18px; border-radius: 20px; background: #e2e8f0; border: none; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .tab.active { background: #0f2b4b; color: white; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding: 15px; }
+    .item-card { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.2s; cursor: pointer; position: relative; }
+    .item-card:active { transform: scale(0.96); }
+    .item-img { width: 100%; height: 120px; objectFit: cover; background: #cbd5e1; }
+    .item-info { padding: 10px; text-align: center; }
+    .item-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+    .item-price { color: #0f2b4b; font-weight: bold; font-size: 1.1rem; }
+    .item-edit-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .cart-sidebar { width: 320px; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.05); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+    .cart-sidebar h2 { margin-bottom: 15px; }
+    .cart-sidebar .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+    .cart-sidebar .cart-item-info { display: flex; flex-direction: column; gap: 2px; }
+    .cart-sidebar .cart-item-service { font-size: 0.8rem; color: #64748b; }
+    .cart-sidebar .cart-item-actions { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ccc; background: white; font-weight: bold; cursor: pointer; }
+    .total-row { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: bold; margin: 15px 0; }
+    @media (max-width: 767px) {
+      .main-area { flex-direction: column; }
+      .cart-sidebar { display: none; }
+      .cart-panel { position: fixed; bottom: 0; right: 0; width: 100%; max-width: 420px; background: white; box-shadow: -2px 0 20px rgba(0,0,0,0.2); border-radius: 20px 20px 0 0; padding: 20px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 1000; max-height: 85vh; overflow-y: auto; }
+      .cart-panel.open { transform: translateY(0); }
+      .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
+      .overlay.show { display: block; }
+      .mobile-cart-btn { position: fixed; bottom: 20px; right: 20px; background: #0f2b4b; color: white; border-radius: 50%; width: 56px; height: 56px; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 998; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+      .cart-count-badge { position: absolute; top: -5px; right: -5px; background: #f97316; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+    }
+    @media (min-width: 768px) {
+      .cart-sidebar { display: flex; }
+      .cart-panel, .overlay, .mobile-cart-btn { display: none; }
+    }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
+    .bill-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; flex-wrap: wrap; }
+    .lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; padding: 20px; }
+    .lock-screen h2 { margin-bottom: 15px; color: #dc2626; }
+    .dashboard { padding: 20px; }
+    .client-row { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .client-row .actions { display: flex; gap: 10px; }
+    .forgot-link { font-size: 0.9rem; color: #0f2b4b; text-decoration: underline; cursor: pointer; margin-top: 10px; }
+    .checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .checkbox-group input[type="checkbox"] { width: auto; }
+    .printer-guide { background: #f8fafc; padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 0.9rem; }
+    .printer-guide h4 { margin-bottom: 10px; }
+    .printer-guide ol { padding-left: 20px; }
+    .payment-section { margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <h2>🧺 Laundry Manager</h2>
+      <div class="tab-btns">
+        <button class="tab-btn active" onclick="switchLoginTab('master')" id="masterTabBtn">Master</button>
+        <button class="tab-btn" onclick="switchLoginTab('client')" id="clientTabBtn">Client</button>
+      </div>
+      <div id="masterLoginForm">
+        <div class="form-group"><label>Master Password</label><input type="password" id="masterPassInput" placeholder="Enter master password"></div>
+        <button class="btn btn-primary" onclick="masterLogin()">Login as Master</button>
+        <div class="forgot-link" onclick="showMasterForgot()">Forgot Password?</div>
+      </div>
+      <div id="clientLoginForm" style="display:none">
+        <div class="form-group"><label>Shop ID</label><input type="text" id="clientShopIdInput" placeholder="e.g., abc123"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="clientPassInput" placeholder="Owner or Staff password"></div>
+        <button class="btn btn-primary" onclick="clientLogin()">Login to Shop</button>
+        <div style="font-size:0.8rem; margin-top:5px; color:#64748b">Owner password → full access<br>Staff password → POS only</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot master password modal -->
+  <div class="modal" id="masterForgotModal">
+    <div class="modal-content">
+      <h2>Reset Master Password</h2>
+      <p>Enter the WhatsApp number you set in Settings to verify.</p>
+      <div class="form-group"><label>WhatsApp Number</label><input type="text" id="recoveryWhatsapp" placeholder="+973 36817742"></div>
+      <div class="form-group"><label>New Master Password</label><input type="password" id="recoveryNewPass"></div>
+      <button class="btn btn-primary" onclick="resetMasterPassword()">Reset Password</button>
+      <button class="btn btn-outline" onclick="closeModal('masterForgotModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div id="masterDashboard" style="display:none">
+    <div class="header"><div class="logo-text">Master Dashboard</div></div>
+    <div class="dashboard">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px">
+        <h2>👥 Clients</h2>
+        <div>
+          <button class="btn btn-outline" onclick="addClient()" style="width:auto">+ Add Client</button>
+          <button class="btn btn-outline" onclick="openMasterSettings()" style="width:auto; margin-left:10px">⚙️ Settings</button>
+          <button class="btn btn-outline" onclick="logoutMaster()" style="width:auto; margin-left:10px">Logout</button>
+        </div>
+      </div>
+      <div id="clientsList"></div>
+    </div>
+  </div>
+
+  <div id="clientApp" style="display:none">
+    <div class="header">
+      <img id="logoImg" class="logo-img" src="" alt="logo">
+      <div id="logoText" class="logo-text">fresh and clean</div>
+      <div class="sub">laundry <span id="staffBadge" class="staff-badge" style="display:none">👤 Staff</span></div>
+    </div>
+    <div class="top-bar">
+      <span class="datetime" id="datetime"></span>
+      <div class="search-container"><input type="text" id="searchInput" placeholder="🔍 Search items..." oninput="filterItems()"></div>
+      <div class="quick-add-toggle"><span>Quick Add</span><div id="quickAddToggle" class="toggle-switch" onclick="toggleQuickAdd()"></div></div>
+      <button class="icon-btn" id="adminBtn" title="Admin">⚙️</button>
+    </div>
+    <div class="main-area">
+      <div class="items-section">
+        <div id="categoryTabs" class="tabs"></div>
+        <div id="itemsGrid" class="items-grid"></div>
+      </div>
+      <div id="desktopCart" class="cart-sidebar">
+        <h2>🧺 Current Order</h2>
+        <div class="form-group"><label>Customer Name</label><input type="text" id="custName" placeholder="Enter name"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="custPhone" placeholder="Phone number"></div>
+        <div class="form-group"><label>Address (optional)</label><input type="text" id="custAddress" placeholder="Address"></div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="markDelivery" style="width:auto">
+          <label for="markDelivery">Mark for Delivery</label>
+        </div>
+        <div id="desktopCartItems">No items</div>
+        <div class="total-row"><span>Total</span><span id="desktopCartTotal">0.000 BHD</span></div>
+        <button class="btn btn-primary" onclick="generateBill()">🧾 Generate Bill</button>
+        <button class="btn btn-outline" onclick="clearCart()">Clear</button>
+      </div>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeMobileCart()"></div>
+    <div class="cart-panel" id="mobileCart">
+      <h2>🧺 Current Order</h2>
+      <div class="form-group"><label>Customer Name</label><input type="text" id="custNameMobile" placeholder="Enter name"></div>
+      <div class="form-group"><label>Phone</label><input type="tel" id="custPhoneMobile" placeholder="Phone number"></div>
+      <div class="form-group"><label>Address (optional)</label><input type="text" id="custAddressMobile" placeholder="Address"></div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="markDeliveryMobile" style="width:auto">
+        <label for="markDeliveryMobile">Mark for Delivery</label>
+      </div>
+      <div id="mobileCartItems">No items</div>
+      <div class="total-row"><span>Total</span><span id="mobileCartTotal">0.000 BHD</span></div>
+      <button class="btn btn-primary" onclick="generateBill()">🧾 Generate Bill</button>
+      <button class="btn btn-outline" onclick="clearCart(); closeMobileCart();">Clear</button>
+    </div>
+    <div class="mobile-cart-btn" onclick="openMobileCart()">🧺<span id="mobileCartCount" class="cart-count-badge" style="display:none">0</span></div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="serviceModal">
+    <div class="modal-content">
+      <h3>Add <span id="serviceItemName"></span></h3>
+      <div class="radio-group" id="serviceOptions"></div>
+      <div class="form-group" style="margin-top:10px"><label>Price (BHD)</label><input type="number" step="0.001" id="servicePrice"></div>
+      <button class="btn btn-primary" onclick="confirmAddToCart()">Add to Order</button>
+      <button class="btn btn-outline" onclick="closeModal('serviceModal')">Cancel</button>
+    </div>
+  </div>
+  <div class="modal" id="adminModal">
+    <div class="modal-content">
+      <h2>Client Admin Login</h2>
+      <div class="form-group"><input type="password" id="clientAdminPasswordInput" placeholder="Enter owner password"></div>
+      <button class="btn btn-primary" onclick="clientAdminLogin()">Login</button>
+      <button class="btn btn-outline" onclick="closeModal('adminModal')">Cancel</button>
+    </div>
+  </div>
+  <div class="modal" id="itemModal">
+    <div class="modal-content">
+      <h2 id="itemModalTitle">Add Item</h2>
+      <div class="form-group"><label>Item Name</label><input type="text" id="itemName"></div>
+      <div class="form-group"><label>Category</label><input type="text" id="itemCategory"></div>
+      <div class="form-group"><label>Image URL or Upload</label><input type="file" id="itemImageFile" accept="image/*"><br><input type="url" id="itemImageUrl" placeholder="https://..."></div>
+      <hr>
+      <div class="form-group"><label>Wash & Iron Price (BHD)</label><input type="number" step="0.001" id="itemPriceWash" placeholder="0.000"></div>
+      <div class="form-group"><label>Dry Clean Price (BHD)</label><input type="number" step="0.001" id="itemPriceDry" placeholder="0.000"></div>
+      <div class="form-group"><label>Iron Only Price (BHD)</label><input type="number" step="0.001" id="itemPriceIron" placeholder="0.000"></div>
+      <button class="btn btn-primary" onclick="saveItem()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn btn-outline" style="color:red; display:none" id="deleteItemBtn" onclick="deleteItem()">Delete Item</button>
+    </div>
+  </div>
+  <div class="modal" id="billModal"><div class="modal-content" id="billContent"></div></div>
+  <div class="modal" id="billHistoryModal">
+    <div class="modal-content">
+      <h2>📋 Bill History</h2>
+      <input class="search-box" id="billSearch" placeholder="Search by bill number or date..." oninput="renderBillHistory()">
+      <div id="billHistoryList"></div>
+      <button class="btn btn-outline" onclick="closeModal('billHistoryModal')">Close</button>
+    </div>
+  </div>
+  <div class="modal" id="customerModal">
+    <div class="modal-content">
+      <h2>👥 Customers</h2>
+      <input class="search-box" id="customerSearch" placeholder="Search by name or phone..." oninput="renderCustomerList()">
+      <div id="customerList"></div>
+      <button class="btn btn-outline" onclick="closeModal('customerModal')">Close</button>
+    </div>
+  </div>
+  <div class="modal" id="clientEditModal">
+    <div class="modal-content">
+      <h2 id="clientEditTitle">Add Client</h2>
+      <div class="form-group"><label>Shop Name</label><input type="text" id="clientShopName"></div>
+      <div class="form-group"><label>Address</label><input type="text" id="clientAddress"></div>
+      <div class="form-group"><label>Logo (optional)</label><input type="file" id="clientLogoFile" accept="image/*"><br><small>or leave empty for text logo</small></div>
+      <div class="form-group"><label>Client Owner Password</label><input type="password" id="clientPassword"></div>
+      <div class="form-group"><label>Staff Password (POS only)</label><input type="password" id="clientStaffPassword"></div>
+      <div class="form-group"><label>Expiry Date</label><input type="date" id="clientExpiry"></div>
+      <button class="btn btn-primary" onclick="saveClient()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('clientEditModal')">Cancel</button>
+      <button class="btn btn-outline" style="color:red; display:none" id="deleteClientBtn" onclick="deleteClient()">Delete Client</button>
+      <button class="btn btn-outline" style="margin-top:8px; background:#fef3c7; color:#b45309; border-color:#f59e0b" id="resetCatalogueBtn" onclick="resetCatalogue()">🔄 Reset Catalogue</button>
+    </div>
+  </div>
+  <div class="modal" id="masterSettingsModal">
+    <div class="modal-content">
+      <h2>⚙️ Master Settings</h2>
+      <div class="form-group"><label>Your WhatsApp Number (for recovery)</label><input type="text" id="ownerWhatsapp" placeholder="+973 36817742"></div>
+      <div class="form-group"><label>New Master Password</label><input type="password" id="newMasterPassword"></div>
+      <button class="btn btn-primary" onclick="saveMasterSettings()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('masterSettingsModal')">Cancel</button>
+    </div>
+  </div>
+  <div class="modal" id="editBillDateModal">
+    <div class="modal-content">
+      <h2>Edit Bill Date & Time</h2>
+      <div class="form-group"><label>Date</label><input type="date" id="newBillDate"></div>
+      <div class="form-group"><label>Time</label><input type="time" id="newBillTime"></div>
+      <button class="btn btn-primary" onclick="saveBillDateTime()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('editBillDateModal')">Cancel</button>
+    </div>
+  </div>
+  <div class="modal" id="paymentModal">
+    <div class="modal-content">
+      <h2>Mark as Paid</h2>
+      <p>Select payment method for bill #<span id="paymentBillNumber"></span></p>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select id="paymentMethodSelect">
+          <option value="Cash">Cash</option>
+          <option value="Benefit Pay">Benefit Pay</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="confirmPayment()">Confirm Payment</button>
+      <button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button>
+    </div>
+  </div>
+  <div class="modal" id="clientSettingsModal">
+    <div class="modal-content">
+      <h2>⚙️ Client Settings</h2>
+      <div class="printer-guide">
+        <h4>🖨️ Printer Setup Guide</h4>
+        <ol>
+          <li>Connect your printer to your device (USB/Bluetooth).</li>
+          <li>For <strong>thermal 80mm printers</strong>, in Chrome go to Print → More Settings → Paper size → Custom → Width: 80mm, Height: 297mm.</li>
+          <li>For <strong>A4 printers</strong>, keep default A4 size.</li>
+          <li>Enable "Background Graphics" in print options to include the logo.</li>
+        </ol>
+      </div>
+      <button class="btn btn-outline" onclick="closeModal('clientSettingsModal')">Close</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const MASTER_PASSWORD_KEY = 'master_password', OWNER_WHATSAPP_KEY = 'owner_whatsapp', CLIENTS_KEY = 'laundry_clients';
+      const DEFAULT_MASTER_PASS = 'master123', DEFAULT_WHATSAPP = '+973 36817742';
+
+      function getMasterPassword() { return localStorage.getItem(MASTER_PASSWORD_KEY) || DEFAULT_MASTER_PASS; }
+      function saveMasterPassword(p) { localStorage.setItem(MASTER_PASSWORD_KEY, p); }
+      function getOwnerWhatsapp() { return localStorage.getItem(OWNER_WHATSAPP_KEY) || DEFAULT_WHATSAPP; }
+      function saveOwnerWhatsapp(n) { localStorage.setItem(OWNER_WHATSAPP_KEY, n); }
+      function getClients() { return JSON.parse(localStorage.getItem(CLIENTS_KEY) || '[]'); }
+      function saveClients(arr) { localStorage.setItem(CLIENTS_KEY, JSON.stringify(arr)); }
+      function clientKey(cid, base) { return `client_${cid}_${base}`; }
+      function getClientItems(cid) { return JSON.parse(localStorage.getItem(clientKey(cid,'items')) || '[]'); }
+      function saveClientItems(cid, arr) { localStorage.setItem(clientKey(cid,'items'), JSON.stringify(arr)); }
+      function getClientBills(cid) { return JSON.parse(localStorage.getItem(clientKey(cid,'bills')) || '[]'); }
+      function saveClientBills(cid, arr) { localStorage.setItem(clientKey(cid,'bills'), JSON.stringify(arr)); }
+      function getClientCounter(cid) { return parseInt(localStorage.getItem(clientKey(cid,'counter')) || '1000'); }
+      function saveClientCounter(cid, n) { localStorage.setItem(clientKey(cid,'counter'), n); }
+      function getClientQuickAdd(cid) { return localStorage.getItem(clientKey(cid,'quickAdd')) === 'true'; }
+      function saveClientQuickAdd(cid, b) { localStorage.setItem(clientKey(cid,'quickAdd'), b); }
+
+      let currentMode = null, currentClient = null, isClientAdmin = false, isStaff = false;
+      let cart = [], editingItemId = null, pendingItemId = null, quickAdd = false;
+      let editingBillNumber = null;
+      let pendingPaymentBillNumber = null;
+
+      const FULL_ITEMS = [
+        { name: "Abaya", washIron: 2.000, dryClean: 2.500, iron: 1.000, category: "Traditional" },
+        { name: "Silk Abaya", washIron: 3.000, dryClean: 3.500, iron: 1.500, category: "Traditional" },
+        { name: "Daraa/Galabieh", washIron: 1.800, dryClean: 2.200, iron: 0.900, category: "Traditional" },
+        { name: "Hijab/Scarf", washIron: 0.600, dryClean: 0.800, iron: 0.300, category: "Traditional" },
+        { name: "Thawb (Summer)", washIron: 2.000, dryClean: 2.500, iron: 1.000, category: "Summer" },
+        { name: "Bed Sheet (Single)", washIron: 1.000, dryClean: 1.500, iron: 0.500, category: "Home" },
+        { name: "Pillow", washIron: 0.800, dryClean: 1.200, iron: 0.400, category: "Home" },
+        { name: "Jeans", washIron: 1.800, dryClean: 2.200, iron: 1.000, category: "Western" },
+        { name: "Shirt", washIron: 1.500, dryClean: 2.000, iron: 0.800, category: "Western" },
+        { name: "Officer Uniform Suit", washIron: 4.000, dryClean: 5.000, iron: 2.000, category: "Western" }
+      ];
+
+      window.switchLoginTab = (tab) => {
+        document.getElementById('masterLoginForm').style.display = tab === 'master' ? 'block' : 'none';
+        document.getElementById('clientLoginForm').style.display = tab === 'client' ? 'block' : 'none';
+        document.getElementById('masterTabBtn').classList.toggle('active', tab === 'master');
+        document.getElementById('clientTabBtn').classList.toggle('active', tab === 'client');
+      };
+
+      window.masterLogin = () => {
+        if (document.getElementById('masterPassInput').value === getMasterPassword()) {
+          currentMode = 'master';
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('masterDashboard').style.display = 'block';
+          document.getElementById('clientApp').style.display = 'none';
+          renderClientsList();
+        } else alert('Wrong master password');
+      };
+
+      window.showMasterForgot = () => document.getElementById('masterForgotModal').classList.add('show');
+      window.resetMasterPassword = () => {
+        const whatsapp = document.getElementById('recoveryWhatsapp').value.trim();
+        const newPass = document.getElementById('recoveryNewPass').value;
+        if (!whatsapp || !newPass) return alert('Fill both fields');
+        if (whatsapp !== getOwnerWhatsapp()) return alert('WhatsApp number does not match');
+        saveMasterPassword(newPass);
+        alert('Master password reset!');
+        closeModal('masterForgotModal');
+      };
+
+      window.clientLogin = () => {
+        const shopId = document.getElementById('clientShopIdInput').value.trim();
+        const pass = document.getElementById('clientPassInput').value;
+        const clients = getClients();
+        const client = clients.find(c => c.id === shopId);
+        if (!client) return alert('Shop ID not found');
+
+        if (client.password === pass) {
+          isStaff = false;
+          isClientAdmin = true;
+        } else if (client.staffPassword && client.staffPassword === pass) {
+          isStaff = true;
+          isClientAdmin = false;
+        } else {
+          return alert('Wrong password');
+        }
+
+        const today = new Date(); today.setHours(0,0,0,0);
+        const expiry = new Date(client.expiry); expiry.setHours(23,59,59,999);
+        if (today > expiry) {
+          showClientLockScreen(client);
+          return;
+        }
+        startClientSession(client);
+      };
+
+      function showClientLockScreen(client) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('masterDashboard').style.display = 'none';
+        document.getElementById('clientApp').style.display = 'none';
+        const div = document.createElement('div'); div.className = 'lock-screen';
+        div.innerHTML = `<h2>🔒 License Expired</h2><p>${client.shopName} – subscription ended.</p>
+          <button class="btn btn-primary" onclick="window.open('https://wa.me/${getOwnerWhatsapp().replace(/[^0-9]/g,'')}','_blank')">📲 Renew via WhatsApp</button>
+          <button class="btn btn-outline" style="margin-top:10px" onclick="location.reload()">Back to Login</button>`;
+        document.body.appendChild(div);
+      }
+
+      function startClientSession(client) {
+        currentMode = 'client'; currentClient = client;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('masterDashboard').style.display = 'none';
+        document.getElementById('clientApp').style.display = 'block';
+        document.getElementById('logoText').textContent = client.shopName;
+        document.getElementById('staffBadge').style.display = isStaff ? 'inline-block' : 'none';
+        const logoImg = document.getElementById('logoImg');
+        if (client.logo) { logoImg.src = client.logo; logoImg.style.display = 'block'; document.getElementById('logoText').style.display = 'none'; }
+        else { logoImg.style.display = 'none'; document.getElementById('logoText').style.display = 'block'; }
+        quickAdd = getClientQuickAdd(client.id);
+        document.getElementById('quickAddToggle').classList.toggle('active', quickAdd);
+        initClientPOS();
+      }
+
+      function renderClientsList() {
+        const clients = getClients();
+        document.getElementById('clientsList').innerHTML = clients.map(c => {
+          const today = new Date(); today.setHours(0,0,0,0);
+          const exp = new Date(c.expiry); exp.setHours(23,59,59,999);
+          return `<div class="client-row"><div><strong>${c.shopName}</strong><br><small>ID: ${c.id} | Exp: ${c.expiry} | ${today<=exp?'🟢 Active':'🔴 Expired'}</small></div>
+            <div class="actions"><button class="btn btn-outline btn-small" onclick="editClient('${c.id}')">✏️</button>
+            <button class="btn btn-outline btn-small" style="color:red" onclick="deleteClientConfirm('${c.id}')">🗑</button></div></div>`;
+        }).join('');
+      }
+
+      window.addClient = () => {
+        document.getElementById('clientEditTitle').textContent='Add New Client';
+        document.getElementById('clientShopName').value=''; document.getElementById('clientAddress').value='';
+        document.getElementById('clientPassword').value=''; document.getElementById('clientStaffPassword').value='';
+        document.getElementById('clientExpiry').value='';
+        document.getElementById('clientLogoFile').value='';
+        document.getElementById('deleteClientBtn').style.display='none';
+        document.getElementById('resetCatalogueBtn').style.display='none';
+        document.getElementById('clientEditModal').classList.add('show');
+      };
+
+      window.editClient = (id) => {
+        const c = getClients().find(x=>x.id===id); if(!c) return;
+        document.getElementById('clientEditTitle').textContent=`Edit ${c.shopName}`;
+        document.getElementById('clientShopName').value=c.shopName; document.getElementById('clientAddress').value=c.address||'';
+        document.getElementById('clientPassword').value=c.password;
+        document.getElementById('clientStaffPassword').value=c.staffPassword || '';
+        document.getElementById('clientExpiry').value=c.expiry;
+        document.getElementById('clientLogoFile').value=''; document.getElementById('deleteClientBtn').style.display='block';
+        document.getElementById('resetCatalogueBtn').style.display='block';
+        document.getElementById('clientEditModal').classList.add('show');
+        document.getElementById('clientEditModal').dataset.clientId=id;
+      };
+
+      window.saveClient = () => {
+        const name = document.getElementById('clientShopName').value.trim();
+        const address = document.getElementById('clientAddress').value.trim();
+        const password = document.getElementById('clientPassword').value;
+        const staffPassword = document.getElementById('clientStaffPassword').value;
+        const expiry = document.getElementById('clientExpiry').value;
+        if(!name||!password||!expiry) return alert('Fill required fields');
+        const logoFile = document.getElementById('clientLogoFile').files[0];
+        const clientId = document.getElementById('clientEditModal').dataset.clientId || Date.now().toString(36);
+        const finish = (logoDataUrl) => {
+          const clients = getClients();
+          const idx = clients.findIndex(c=>c.id===clientId);
+          const data = { id:clientId, shopName:name, address, logo:logoDataUrl||'', password, staffPassword, expiry };
+          if(idx>-1) clients[idx]=data; else clients.push(data);
+          saveClients(clients);
+          document.getElementById('clientEditModal').classList.remove('show');
+          renderClientsList();
+        };
+        if(logoFile){ const r=new FileReader(); r.onload=e=>finish(e.target.result); r.readAsDataURL(logoFile); }
+        else { const existing=getClients().find(c=>c.id===clientId); finish(existing?existing.logo||'':''); }
+      };
+
+      window.deleteClientConfirm = (id) => { if(confirm('Delete?')){ saveClients(getClients().filter(c=>c.id!==id)); renderClientsList(); } };
+      window.deleteClient = () => { const id=document.getElementById('clientEditModal').dataset.clientId; if(id) deleteClientConfirm(id); document.getElementById('clientEditModal').classList.remove('show'); };
+      window.resetCatalogue = () => {
+        if(!confirm('Reset to full catalogue?')) return;
+        const clientId = document.getElementById('clientEditModal').dataset.clientId;
+        if(!clientId) return;
+        const items = FULL_ITEMS.map(d => ({ id: Date.now().toString(36)+Math.random().toString(36).substr(2,5), name: d.name, category: d.category||'Other', image: '', prices: { washIron: d.washIron, dryClean: d.dryClean, iron: d.iron } }));
+        saveClientItems(clientId, items);
+        alert('Catalogue reset!');
+        document.getElementById('clientEditModal').classList.remove('show');
+      };
+
+      window.openMasterSettings = () => {
+        document.getElementById('ownerWhatsapp').value=getOwnerWhatsapp();
+        document.getElementById('newMasterPassword').value='';
+        document.getElementById('masterSettingsModal').classList.add('show');
+      };
+      window.saveMasterSettings = () => {
+        const whatsapp=document.getElementById('ownerWhatsapp').value.trim();
+        const newPass=document.getElementById('newMasterPassword').value.trim();
+        if(whatsapp) saveOwnerWhatsapp(whatsapp);
+        if(newPass){ saveMasterPassword(newPass); alert('Master password updated!'); } else alert('Saved');
+        document.getElementById('masterSettingsModal').classList.remove('show');
+      };
+      window.logoutMaster = () => { currentMode=null; document.getElementById('masterDashboard').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('masterPassInput').value=''; };
+
+      // ---------- CLIENT POS ----------
+      function initClientPOS() {
+        const cid = currentClient.id;
+        let items = getClientItems(cid);
+        let bills = getClientBills(cid);
+        let counter = getClientCounter(cid);
+
+        if (items.length < 5) {
+          const oldStr = localStorage.getItem('laundry_items');
+          if (oldStr) {
+            try {
+              const oldItems = JSON.parse(oldStr);
+              const converted = oldItems.map(it => {
+                if (!it.prices) { const p = it.price || 1.000; return { ...it, prices: { washIron: p, dryClean: p*1.2, iron: p*0.6 }, price: undefined }; }
+                return it;
+              });
+              const existNames = new Set(items.map(i=>i.name.toLowerCase()));
+              const newItems = converted.filter(i=>!existNames.has(i.name.toLowerCase()));
+              if (newItems.length) { items = [...items, ...newItems.map(i=>({...i, id: uid()}))]; saveClientItems(cid, items); }
+              const oldCounter = parseInt(localStorage.getItem('laundry_counter'));
+              if (!isNaN(oldCounter) && oldCounter > counter) { saveClientCounter(cid, oldCounter); counter = oldCounter; }
+              localStorage.removeItem('laundry_items'); localStorage.removeItem('laundry_counter');
+            } catch(e){}
+          } else {
+            items = FULL_ITEMS.map(d => ({ id: uid(), name: d.name, category: d.category||'Other', image: '', prices: { washIron: d.washIron, dryClean: d.dryClean, iron: d.iron } }));
+            saveClientItems(cid, items);
+          }
+        }
+        bills = getClientBills(cid);
+        counter = getClientCounter(cid);
+
+        function uid() { return Date.now().toString(36)+Math.random().toString(36).substr(2,5); }
+        let localCart = []; cart = localCart;
+        let localQuickAdd = quickAdd;
+        const SERVICES = ['Wash & Iron','Dry Clean','Iron'];
+
+        function renderTabs() {
+          const all = getClientItems(cid);
+          const cats = [...new Set(all.map(i=>i.category||'Other'))].filter(Boolean);
+          const html = cats.map(c=>`<button class="tab" onclick="filterCategory('${c}')">${c}</button>`).join('');
+          document.getElementById('categoryTabs').innerHTML = html + `<button class="tab active" onclick="filterCategory('all')">All</button>`;
+        }
+
+        function renderItems(cat='all') {
+          const all = getClientItems(cid);
+          const search = document.getElementById('searchInput').value.toLowerCase();
+          let list = cat==='all' ? all : all.filter(i=>i.category===cat);
+          if (search) list = list.filter(i=>i.name.toLowerCase().includes(search));
+          document.getElementById('itemsGrid').innerHTML = list.map(item => `
+            <div class="item-card">
+              <img class="item-img" src="${item.image || `https://placehold.co/300x200/0f2b4b/white?text=${encodeURIComponent(item.name)}`}" onclick="handleItemClick('${item.id}')">
+              <div class="item-info" onclick="handleItemClick('${item.id}')">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">from ${item.prices.washIron.toFixed(3)} BHD</div>
+              </div>
+              ${isClientAdmin ? `<button class="item-edit-btn" onclick="event.stopPropagation(); editItem('${item.id}')">✏️</button>` : ''}
+            </div>`).join('');
+        }
+
+        window.filterCategory = (cat) => {
+          document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+          event.target.classList.add('active');
+          renderItems(cat);
+        };
+        window.filterItems = () => {
+          const activeTab = document.querySelector('.tab.active');
+          const cat = activeTab ? activeTab.textContent.trim() : 'all';
+          renderItems(cat==='All'?'all':cat);
+        };
+
+        window.handleItemClick = (itemId) => {
+          if (localQuickAdd) addToCartDirect(itemId, 'Wash & Iron');
+          else selectService(itemId);
+        };
+
+        function addToCartDirect(itemId, service) {
+          const item = getClientItems(cid).find(i=>i.id===itemId);
+          if (!item) return;
+          const priceKey = service==='Wash & Iron' ? 'washIron' : (service==='Dry Clean'?'dryClean':'iron');
+          const price = item.prices[priceKey];
+          const exist = cart.find(i=>i.id===itemId && i.service===service);
+          if (exist) exist.qty++; else cart.push({id:item.id, name:item.name, service, price, qty:1});
+          renderCart();
+        }
+
+        window.selectService = (itemId) => {
+          const item = getClientItems(cid).find(i=>i.id===itemId);
+          if(!item) return;
+          pendingItemId = itemId;
+          document.getElementById('serviceItemName').textContent = item.name;
+          document.getElementById('serviceOptions').innerHTML = SERVICES.map((s,idx) => {
+            const key = idx===0?'washIron':(idx===1?'dryClean':'iron');
+            const price = item.prices[key];
+            return `<div class="radio-option"><input type="radio" name="serviceType" value="${s}" data-price="${price}" ${idx===0?'checked':''} onchange="updateServicePrice()"> ${s} - ${price.toFixed(3)} BHD</div>`;
+          }).join('');
+          document.getElementById('servicePrice').value = item.prices.washIron.toFixed(3);
+          document.getElementById('serviceModal').classList.add('show');
+        };
+
+        window.updateServicePrice = () => {
+          const checked = document.querySelector('input[name="serviceType"]:checked');
+          if(checked) document.getElementById('servicePrice').value = parseFloat(checked.dataset.price).toFixed(3);
+        };
+
+        window.confirmAddToCart = () => {
+          const service = document.querySelector('input[name="serviceType"]:checked')?.value;
+          const price = parseFloat(document.getElementById('servicePrice').value);
+          if(!service || isNaN(price)) return alert('Select service');
+          const item = getClientItems(cid).find(i=>i.id===pendingItemId);
+          if(!item) return;
+          const exist = cart.find(i=>i.id===pendingItemId && i.service===service);
+          if(exist) exist.qty++; else cart.push({id:item.id, name:item.name, service, price, qty:1});
+          renderCart();
+          closeModal('serviceModal');
+        };
+
+        function renderCart() {
+          const desktop = document.getElementById('desktopCartItems'), mobile = document.getElementById('mobileCartItems');
+          const dt = document.getElementById('desktopCartTotal'), mt = document.getElementById('mobileCartTotal');
+          const mc = document.getElementById('mobileCartCount');
+          if(cart.length===0) {
+            desktop.innerHTML='No items'; mobile.innerHTML='No items';
+            dt.textContent='0.000 BHD'; mt.textContent='0.000 BHD'; mc.style.display='none';
+          } else {
+            const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+            const html = cart.map(i=>`
+              <div class="cart-item">
+                <div class="cart-item-info"><strong>${i.name}</strong><span class="cart-item-service">${i.service}</span></div>
+                <div class="cart-item-actions">
+                  <button class="qty-btn" onclick="changeQty('${i.id}','${i.service}',-1)">−</button>
+                  <span>${i.qty}</span>
+                  <button class="qty-btn" onclick="changeQty('${i.id}','${i.service}',1)">+</button>
+                  <span style="margin-left:10px">${(i.price*i.qty).toFixed(3)}</span>
+                </div>
+              </div>`).join('');
+            desktop.innerHTML=html; mobile.innerHTML=html;
+            dt.textContent=total.toFixed(3)+' BHD'; mt.textContent=total.toFixed(3)+' BHD';
+            mc.textContent=cart.reduce((s,i)=>s+i.qty,0); mc.style.display='flex';
+          }
+        }
+
+        window.changeQty = (itemId, service, delta) => {
+          const entry = cart.find(i=>i.id===itemId && i.service===service);
+          if(!entry) return;
+          entry.qty += delta;
+          if(entry.qty<=0) cart = cart.filter(i=>!(i.id===itemId && i.service===service));
+          renderCart();
+        };
+        window.clearCart = () => { cart=[]; renderCart(); };
+        window.openMobileCart = () => { document.getElementById('mobileCart').classList.add('open'); document.getElementById('overlay').classList.add('show'); };
+        window.closeMobileCart = () => { document.getElementById('mobileCart').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); };
+
+        window.generateBill = () => {
+          if(cart.length===0) return alert('Cart empty');
+          const custName = (document.getElementById('custName').value || document.getElementById('custNameMobile').value).trim() || 'Walk-in Customer';
+          const custPhone = (document.getElementById('custPhone').value || document.getElementById('custPhoneMobile').value).trim();
+          const custAddr = (document.getElementById('custAddress').value || document.getElementById('custAddressMobile').value).trim();
+          const delivery = (document.getElementById('markDelivery')?.checked || document.getElementById('markDeliveryMobile')?.checked) || false;
+
+          const bill = {
+            billNumber: ++counter,
+            items: cart.map(i=>({name:i.name,service:i.service,price:i.price,qty:i.qty})),
+            total: cart.reduce((s,i)=>s+i.price*i.qty,0),
+            date: new Date().toISOString(),
+            customer: {name:custName,phone:custPhone,address:custAddr},
+            paymentStatus: 'Pending',
+            paymentMethod: '',
+            paymentDate: null,
+            delivery,
+            status: delivery ? 'Pending' : 'Picked Up',
+            ready:'24 hours'
+          };
+          saveClientCounter(cid, counter);
+          bills.unshift(bill); saveClientBills(cid, bills);
+          showBillModal(bill);
+          clearCart();
+          document.getElementById('custName').value=''; document.getElementById('custPhone').value=''; document.getElementById('custAddress').value='';
+          document.getElementById('custNameMobile').value=''; document.getElementById('custPhoneMobile').value=''; document.getElementById('custAddressMobile').value='';
+          document.getElementById('markDelivery').checked = false; document.getElementById('markDeliveryMobile').checked = false;
+          if(window.innerWidth<768) closeMobileCart();
+        };
+
+        function showBillModal(bill) {
+          const itemsHtml = bill.items.map(i=>`<div class="bill-line"><span>${i.name} (${i.service}) x${i.qty}</span><span>${(i.price*i.qty).toFixed(3)} BHD</span></div>`).join('');
+          const customerInfo = bill.customer?.name ? `<p><strong>Customer:</strong> ${bill.customer.name} | ${bill.customer.phone} | ${bill.customer.address||''}</p>` : '';
+          const deliveryInfo = bill.delivery ? `<p>🚚 Delivery Order - Status: ${bill.status}</p>` : '';
+          const paymentInfo = bill.paymentStatus === 'Paid' ? `<p>💳 Paid by ${bill.paymentMethod} on ${new Date(bill.paymentDate).toLocaleString()}</p>` : '';
+          const paymentBtn = (bill.paymentStatus === 'Pending') ? `<button class="btn btn-outline" onclick="openPaymentModal(${bill.billNumber})">💵 Mark as Paid</button>` : '';
+
+          document.getElementById('billContent').innerHTML = `
+            <div class="printable"><div style="text-align:center">
+              ${currentClient.logo ? `<img src="${currentClient.logo}" style="max-height:80px; margin:0 auto;">` : ''}
+              <h2>${currentClient.shopName}</h2><p>laundry</p><hr>
+              <h3>🧾 Bill #${bill.billNumber}</h3>
+              <p>📍 ${currentClient.address || 'Bahrain'} | 📞 ${getOwnerWhatsapp()}</p>
+              ${customerInfo}
+              <p>📅 ${new Date(bill.date).toLocaleString()}</p>
+              ${deliveryInfo}
+              ${paymentInfo}
+            </div>${itemsHtml}
+            <div class="total-row"><span>Total</span><span>${bill.total.toFixed(3)} BHD</span></div>
+            <p style="text-align:center">🧼 Ready in ${bill.ready}</p><p style="text-align:center">Thank you!</p></div>
+            <div style="display:flex; gap:10px; margin-top:20px">
+              <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+              <button class="btn btn-outline" onclick="shareWhatsApp(${bill.billNumber})">📲 WhatsApp</button>
+              ${isClientAdmin ? `<button class="btn btn-outline" onclick="editBillDateTime(${bill.billNumber})">✏️ Edit Date</button>` : ''}
+              ${paymentBtn}
+            </div>
+            <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal('billModal')">Close</button>`;
+          document.getElementById('billModal').classList.add('show');
+        }
+
+        window.openPaymentModal = (billNo) => {
+          pendingPaymentBillNumber = billNo;
+          document.getElementById('paymentBillNumber').textContent = billNo;
+          document.getElementById('paymentModal').classList.add('show');
+        };
+
+        window.confirmPayment = () => {
+          const method = document.getElementById('paymentMethodSelect').value;
+          const bills = getClientBills(cid);
+          const idx = bills.findIndex(b=>b.billNumber===pendingPaymentBillNumber);
+          if (idx>-1) {
+            bills[idx].paymentStatus = 'Paid';
+            bills[idx].paymentMethod = method;
+            bills[idx].paymentDate = new Date().toISOString();
+            if (!bills[idx].delivery) bills[idx].status = 'Picked Up';
+            saveClientBills(cid, bills);
+            showBillModal(bills[idx]);
+          }
+          closeModal('paymentModal');
+        };
+
+        window.editBillDateTime = (billNo) => {
+          const bill = getClientBills(cid).find(b=>b.billNumber===billNo);
+          if (!bill) return;
+          editingBillNumber = billNo;
+          const d = new Date(bill.date);
+          document.getElementById('newBillDate').value = d.toISOString().split('T')[0];
+          document.getElementById('newBillTime').value = d.toTimeString().split(' ')[0].substring(0,5);
+          document.getElementById('editBillDateModal').classList.add('show');
+        };
+
+        window.saveBillDateTime = () => {
+          const newDate = document.getElementById('newBillDate').value;
+          const newTime = document.getElementById('newBillTime').value;
+          if (!newDate || !newTime) return alert('Fill date and time');
+          const bills = getClientBills(cid);
+          const idx = bills.findIndex(b=>b.billNumber===editingBillNumber);
+          if (idx>-1) {
+            bills[idx].date = new Date(`${newDate}T${newTime}`).toISOString();
+            saveClientBills(cid, bills);
+            showBillModal(bills[idx]);
+          }
+          closeModal('editBillDateModal');
+        };
+
+        window.shareWhatsApp = (billNo) => {
+          const bill = getClientBills(cid).find(b=>b.billNumber===billNo);
+          if(!bill) return;
+          const cust = bill.customer?.name ? `*Customer:* ${bill.customer.name}\n📞 ${bill.customer.phone}\n` : '';
+          const delivery = bill.delivery ? `🚚 Delivery` : '';
+          const payment = bill.paymentStatus === 'Paid' ? `💳 ${bill.paymentMethod}` : '💳 Payment pending';
+          const msg = `🧺 *${currentClient.shopName}* 🧺\n📍 ${currentClient.address||'Bahrain'}\n📞 ${getOwnerWhatsapp()}\n\n${cust}*Bill #${bill.billNumber}*\n${bill.items.map(i=>`▪ ${i.name} (${i.service}) x${i.qty} = ${(i.price*i.qty).toFixed(3)} BHD`).join('\n')}\n\n💰 *Total: ${bill.total.toFixed(3)} BHD*\n${payment}\n${delivery}\n🧼 Ready in ${bill.ready}\n\n*Thank you!*`;
+          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        // Admin button logic
+        document.getElementById('adminBtn').onclick = () => {
+          if (isStaff) {
+            alert('Staff accounts cannot access admin settings.');
+            return;
+          }
+          if (isClientAdmin) {
+            document.getElementById('billContent').innerHTML = `<h2>Admin Menu</h2><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:15px">
+              <button class="btn btn-outline" onclick="newOrder()">🧾 New Order</button>
+              <button class="btn btn-outline" onclick="openAddItem()">➕ Add Item</button>
+              <button class="btn btn-outline" onclick="openBillHistory()">📋 Bills</button>
+              <button class="btn btn-outline" onclick="openCustomerList()">👥 Customers</button>
+              <button class="btn btn-outline" onclick="openClientSettings()">⚙️ Settings</button>
+              <button class="btn btn-outline" onclick="logoutClient()">🔒 Logout</button></div>`;
+            document.getElementById('billModal').classList.add('show');
+          } else {
+            document.getElementById('adminModal').classList.add('show');
+          }
+        };
+
+        window.clientAdminLogin = () => {
+          if (document.getElementById('clientAdminPasswordInput').value === currentClient.password) {
+            isClientAdmin = true;
+            isStaff = false;
+            document.getElementById('staffBadge').style.display = 'none';
+            document.getElementById('adminModal').classList.remove('show');
+            renderItems();
+          } else alert('Wrong owner password');
+        };
+
+        window.openClientSettings = () => {
+          closeModal('billModal');
+          document.getElementById('clientSettingsModal').classList.add('show');
+        };
+
+        window.newOrder = () => { closeModal('billModal'); clearCart(); if(window.innerWidth<768) openMobileCart(); };
+        window.editItem = (id) => {
+          if (isStaff) return;
+          const item = getClientItems(cid).find(i=>i.id===id);
+          if(!item) return;
+          editingItemId = id;
+          document.getElementById('itemModalTitle').textContent='Edit Item';
+          document.getElementById('itemName').value=item.name;
+          document.getElementById('itemCategory').value=item.category||'';
+          document.getElementById('itemImageUrl').value=item.image||'';
+          document.getElementById('itemPriceWash').value=item.prices.washIron;
+          document.getElementById('itemPriceDry').value=item.prices.dryClean;
+          document.getElementById('itemPriceIron').value=item.prices.iron;
+          document.getElementById('deleteItemBtn').style.display='block';
+          document.getElementById('itemModal').classList.add('show');
+        };
+        window.openAddItem = () => {
+          if (isStaff) return;
+          editingItemId=null;
+          document.getElementById('itemModalTitle').textContent='Add New Item';
+          document.getElementById('itemName').value=''; document.getElementById('itemCategory').value='';
+          document.getElementById('itemImageUrl').value=''; document.getElementById('itemPriceWash').value='';
+          document.getElementById('itemPriceDry').value=''; document.getElementById('itemPriceIron').value='';
+          document.getElementById('deleteItemBtn').style.display='none';
+          closeModal('billModal'); document.getElementById('itemModal').classList.add('show');
+        };
+        window.saveItem = () => {
+          if (isStaff) return;
+          const name = document.getElementById('itemName').value.trim();
+          if(!name) return alert('Name required');
+          const washIron=parseFloat(document.getElementById('itemPriceWash').value);
+          const dryClean=parseFloat(document.getElementById('itemPriceDry').value);
+          const iron=parseFloat(document.getElementById('itemPriceIron').value);
+          if([washIron,dryClean,iron].some(isNaN)) return alert('Enter all prices');
+          const category=document.getElementById('itemCategory').value.trim();
+          let image=document.getElementById('itemImageUrl').value.trim();
+          const file=document.getElementById('itemImageFile').files[0];
+          const save=(imgUrl)=>{
+            const allItems=getClientItems(cid);
+            const prices={washIron,dryClean,iron};
+            if(editingItemId){ const idx=allItems.findIndex(i=>i.id===editingItemId); if(idx>-1) allItems[idx]={...allItems[idx],name,category,image:imgUrl,prices}; }
+            else allItems.push({id:uid(),name,category,image:imgUrl,prices});
+            saveClientItems(cid,allItems);
+            document.getElementById('itemModal').classList.remove('show');
+            renderItems(); renderTabs();
+          };
+          if(file){ const r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file); }
+          else save(image);
+        };
+        window.deleteItem = () => {
+          if (isStaff) return;
+          if(!editingItemId) return;
+          if(confirm('Delete?')){ saveClientItems(cid, getClientItems(cid).filter(i=>i.id!==editingItemId)); document.getElementById('itemModal').classList.remove('show'); renderItems(); renderTabs(); }
+        };
+        window.openBillHistory = () => { closeModal('billModal'); renderBillHistory(); document.getElementById('billHistoryModal').classList.add('show'); };
+        function renderBillHistory() {
+          const bills=getClientBills(cid);
+          const q=(document.getElementById('billSearch')?.value||'').toLowerCase();
+          const filtered=bills.filter(b=>b.billNumber.toString().includes(q)||new Date(b.date).toLocaleDateString().includes(q));
+          document.getElementById('billHistoryList').innerHTML=filtered.length? filtered.map(b=>`
+            <div class="bill-line" style="cursor:pointer" onclick="viewBillFromHistory(${b.billNumber})">
+              <span><strong>#${b.billNumber}</strong> - ${new Date(b.date).toLocaleDateString()} ${b.customer?.name||''}</span>
+              <span>${b.total.toFixed(3)} BHD</span></div>`).join('') : '<p>No bills</p>';
+        }
+        window.viewBillFromHistory = (no) => { closeModal('billHistoryModal'); const b=getClientBills(cid).find(x=>x.billNumber===no); if(b) showBillModal(b); };
+        window.openCustomerList = () => { closeModal('billModal'); renderCustomerList(); document.getElementById('customerModal').classList.add('show'); };
+        window.renderCustomerList = () => {
+          const bills=getClientBills(cid);
+          const map=new Map();
+          bills.forEach(b=>{ if(b.customer?.phone){ if(!map.has(b.customer.phone)) map.set(b.customer.phone,{...b.customer,orders:[]}); map.get(b.customer.phone).orders.push(b.billNumber); } });
+          const list=Array.from(map.values());
+          const q=(document.getElementById('customerSearch')?.value||'').toLowerCase();
+          const filtered=list.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q));
+          document.getElementById('customerList').innerHTML=filtered.length? filtered.map(c=>`
+            <div class="bill-line" style="cursor:pointer" onclick="viewCustomerOrders('${c.phone}')">
+              <span><strong>${c.name}</strong> | ${c.phone}</span><span>${c.orders.length} order(s)</span></div>`).join('') : '<p>No customers</p>';
+        };
+        window.viewCustomerOrders = (phone) => {
+          closeModal('customerModal');
+          const bills=getClientBills(cid).filter(b=>b.customer?.phone===phone);
+          document.getElementById('billContent').innerHTML=`<h2>Orders for ${bills[0]?.customer?.name||''}</h2>${bills.map(b=>`<div class="bill-line" onclick="viewBillFromHistory(${b.billNumber})"><span>#${b.billNumber} - ${new Date(b.date).toLocaleDateString()}</span><span>${b.total.toFixed(3)} BHD</span></div>`).join('')}<button class="btn btn-outline" onclick="closeModal('billModal')">Close</button>`;
+          document.getElementById('billModal').classList.add('show');
+        };
+        window.toggleQuickAdd = () => { localQuickAdd=!localQuickAdd; saveClientQuickAdd(cid, localQuickAdd); document.getElementById('quickAddToggle').classList.toggle('active', localQuickAdd); };
+        window.logoutClient = () => {
+          currentMode=null; currentClient=null; isClientAdmin=false; isStaff=false;
+          document.getElementById('clientApp').style.display='none';
+          document.getElementById('loginScreen').style.display='flex';
+          closeModal('billModal');
+        };
+
+        // Sync fields
+        ['custName','custPhone','custAddress','markDelivery'].forEach(k => {
+          const desk = document.getElementById(k), mob = document.getElementById(k+'Mobile');
+          if (desk && mob) {
+            desk.addEventListener('input', e=> { if (mob.type==='checkbox') mob.checked=e.target.checked; else mob.value=e.target.value; });
+            mob.addEventListener('input', e=> { if (desk.type==='checkbox') desk.checked=e.target.checked; else desk.value=e.target.value; });
+          }
+        });
+
+        function updateTime() { document.getElementById('datetime').textContent = new Date().toLocaleString('en-BH',{hour12:true}); }
+        setInterval(updateTime, 1000); updateTime();
+
+        renderTabs(); renderItems(); renderCart();
+      }
+
+      window.closeModal = (id) => document.getElementById(id).classList.remove('show');
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const shopParam = urlParams.get('shop');
+      if (shopParam) { document.getElementById('clientShopIdInput').value = shopParam; switchLoginTab('client'); }
+    })();
+  </script>
+</body>
+</html>
