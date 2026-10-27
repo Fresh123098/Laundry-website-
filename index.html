@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="theme-color" content="#0b1f3a">
+<title>Fresh & Clean Laundry Manager — Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --primary:#0b1f3a;--primary-600:#153a63;--primary-500:#1e4a7a;--primary-400:#2d6ba3;
+  --accent:#f59e0b;--accent-600:#d97706;--accent-100:#fef3c7;
+  --success:#10b981;--success-100:#d1fae5;--danger:#ef4444;--danger-100:#fee2e2;
+  --warning:#f59e0b;--warning-100:#fef3c7;--info:#3b82f6;--info-100:#dbeafe;
+  --bg:#f5f7fa;--surface:#fff;--surface-2:#f8fafc;--border:#e2e8f0;--border-2:#cbd5e1;
+  --text:#0f172a;--text-muted:#64748b;--text-soft:#94a3b8;
+  --radius:12px;--radius-lg:18px;--radius-sm:8px;
+  --shadow-xs:0 1px 2px rgba(15,23,42,.04);
+  --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --shadow:0 4px 16px rgba(15,23,42,.06),0 2px 4px rgba(15,23,42,.04);
+  --shadow-lg:0 20px 40px -12px rgba(15,23,42,.15);
+  --grad-primary:linear-gradient(135deg,#0b1f3a 0%,#1e4a7a 100%);
+  --grad-accent:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+  --grad-surface:linear-gradient(180deg,#fff 0%,#f8fafc 100%);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;
+  -webkit-tap-highlight-color:transparent;transition:background .2s;min-height:100vh;
+}
+body[dir="rtl"]{font-family:'Inter','Segoe UI',Tahoma,system-ui,sans-serif}
+body[dir="rtl"] .item-name,body[dir="rtl"] .cart-item-info{text-align:right}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+
+/* ============ LOGIN ============ */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(30,74,122,.15) 0%,transparent 50%),
+    radial-gradient(circle at 80% 80%,rgba(245,158,11,.1) 0%,transparent 50%),
+    linear-gradient(135deg,#0b1f3a 0%,#1a3a5f 100%);
+}
+.auth-card{background:var(--surface);width:100%;max-width:420px;border-radius:var(--radius-lg);
+  padding:36px 32px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
+  animation:slideUp .4s var(--ease);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--grad-accent)}
+.auth-logo{width:64px;height:64px;border-radius:18px;background:var(--grad-primary);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+  font-size:32px;box-shadow:0 8px 20px -6px rgba(11,31,58,.4)}
+.auth-title{text-align:center;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.auth-sub{text-align:center;color:var(--text-muted);font-size:.9rem;margin-bottom:24px}
+.lang-floating{position:absolute;top:14px;right:14px;background:var(--surface-2);
+  border:1px solid var(--border);padding:6px 12px;border-radius:20px;font-size:.8rem;
+  font-weight:600;color:var(--text-muted);transition:all .15s}
+.lang-floating:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+body[dir="rtl"] .lang-floating{right:auto;left:14px}
+
+.auth-tabs{display:flex;gap:6px;padding:6px;background:var(--surface-2);border-radius:12px;margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;
+  font-weight:600;font-size:.85rem;color:var(--text-muted);transition:all .2s}
+.auth-tab.active{background:#fff;color:var(--primary);box-shadow:var(--shadow-sm)}
+
+/* ============ FORM ============ */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text)}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;
+  border:1.5px solid var(--border);border-radius:10px;font-size:15px;background:#fff;
+  transition:all .15s var(--ease)}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--primary-500);box-shadow:0 0 0 4px rgba(30,74,122,.1)}
+.field small{display:block;color:var(--text-muted);font-size:.78rem;margin-top:4px}
+
+/* ============ BUTTON ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 20px;border:none;border-radius:10px;font-weight:600;font-size:.9rem;
+  transition:all .15s var(--ease);white-space:nowrap;user-select:none}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 4px 12px -2px rgba(11,31,58,.3)}
+.btn-primary:hover:not(:disabled){box-shadow:0 8px 20px -2px rgba(11,31,58,.4);transform:translateY(-1px)}
+.btn-accent{background:var(--grad-accent);color:#fff;box-shadow:0 4px 12px -2px rgba(245,158,11,.4)}
+.btn-accent:hover:not(:disabled){box-shadow:0 8px 20px -2px rgba(245,158,11,.5);transform:translateY(-1px)}
+.btn-outline{background:#fff;color:var(--primary);border:1.5px solid var(--border-2)}
+.btn-outline:hover:not(:disabled){border-color:var(--primary);background:var(--surface-2)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-ghost{background:transparent;color:var(--text-muted)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.btn-sm{padding:7px 12px;font-size:.8rem;border-radius:8px}
+.btn-icon{padding:8px;width:36px;height:36px;border-radius:8px}
+.link{color:var(--primary-500);font-weight:600;text-decoration:underline;cursor:pointer;font-size:.85rem}
+.link:hover{color:var(--primary)}
+
+/* ============ TOAST ============ */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--primary);color:#fff;padding:14px 24px;border-radius:12px;
+  font-weight:600;font-size:.9rem;opacity:0;transition:all .3s var(--ease);
+  z-index:9999;pointer-events:none;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+
+/* ============ APP SHELL ============ */
+.app-shell{display:none}
+.app-shell.active{display:block}
+.app-header{background:var(--grad-primary);color:#fff;padding:16px 24px;
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 20px -8px rgba(11,31,58,.3)}
+.app-header .brand{font-weight:800;font-size:1.15rem;letter-spacing:-.02em}
+.app-header .spacer{flex:1}
+.header-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  font-size:.78rem;font-weight:600;transition:all .15s;cursor:pointer;color:#fff}
+.header-chip:hover{background:rgba(255,255,255,.2)}
+
+/* ============ MASTER DASHBOARD ============ */
+.master-layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 68px)}
+.master-sidebar{background:#fff;border-inline-end:1px solid var(--border);
+  padding:20px;overflow-y:auto;max-height:calc(100vh - 68px);position:sticky;top:68px}
+.sidebar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.sidebar-head h2{font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
+.sidebar-search{position:relative;margin-bottom:14px}
+.sidebar-search input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);
+  border-radius:10px;font-size:.88rem;background:var(--surface-2)}
+.sidebar-search input:focus{outline:none;border-color:var(--primary-500);background:#fff}
+.sidebar-search::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:.9rem;opacity:.6}
+body[dir="rtl"] .sidebar-search input{padding:10px 38px 10px 14px}
+body[dir="rtl"] .sidebar-search::before{left:auto;right:12px}
+
+.client-item{padding:14px;border-radius:12px;border:1.5px solid transparent;
+  cursor:pointer;transition:all .15s;margin-bottom:8px;background:var(--surface-2)}
+.client-item:hover{background:#fff;border-color:var(--border-2);box-shadow:var(--shadow-sm)}
+.client-item.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.client-item.active .client-meta{color:rgba(255,255,255,.75)}
+.client-item.active .client-badge{background:rgba(255,255,255,.2);color:#fff}
+.client-name{font-weight:700;font-size:.95rem;margin-bottom:2px;display:flex;
+  align-items:center;justify-content:space-between;gap:8px}
+.client-meta{font-size:.78rem;color:var(--text-muted)}
+.client-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;
+  font-weight:700;letter-spacing:.02em}
+.badge-active{background:var(--success-100);color:#065f46}
+.badge-expired{background:var(--danger-100);color:#991b1b}
+
+.master-content{padding:28px;max-width:1400px}
+.master-empty{text-align:center;padding:80px 24px;color:var(--text-muted)}
+.master-empty .icon{font-size:4rem;opacity:.4;margin-bottom:12px}
+
+.content-header{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.content-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.content-sub{color:var(--text-muted);font-size:.9rem}
+
+.tab-bar{display:flex;gap:4px;margin-bottom:24px;overflow-x:auto;
+  border-bottom:1px solid var(--border);padding-bottom:0;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:11px 18px;background:transparent;border:none;border-bottom:2.5px solid transparent;
+  color:var(--text-muted);font-weight:600;font-size:.9rem;transition:all .15s;
+  white-space:nowrap;border-radius:8px 8px 0 0}
+.tab-btn:hover{color:var(--text);background:var(--surface-2)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--accent);background:var(--surface-2)}
+body[dir="rtl"] .tab-btn{border-radius:8px 8px 0 0}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;padding:20px;border-radius:var(--radius);box-shadow:var(--shadow-sm);
+  border:1px solid var(--border);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;
+  background:var(--grad-accent);opacity:.08;border-radius:50%;transform:translate(30%,-30%)}
+.stat-label{font-size:.78rem;font-weight:600;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.stat-value{font-size:1.85rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--primary)}
+.stat-sub{font-size:.8rem;color:var(--text-muted);margin-top:6px}
+
+/* DATA LIST */
+.list-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);
+  border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.list-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;
+  justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.list-head h3{font-size:1rem;font-weight:700}
+.list-body{padding:0}
+.list-row{padding:14px 20px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.list-row:last-child{border-bottom:none}
+.list-row:hover{background:var(--surface-2)}
+.list-row-info{flex:1;min-width:0}
+.list-row-title{font-weight:600;font-size:.9rem;margin-bottom:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-row-meta{font-size:.78rem;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap}
+.list-row-actions{display:flex;gap:6px;flex-shrink:0}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:.9rem}
+
+/* BADGES */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
+  font-size:.72rem;font-weight:700;letter-spacing:.02em}
+.pill-success{background:var(--success-100);color:#065f46}
+.pill-warn{background:var(--warning-100);color:#92400e}
+.pill-danger{background:var(--danger-100);color:#991b1b}
+.pill-info{background:var(--info-100);color:#1e40af}
+.pill-neutral{background:var(--surface-2);color:var(--text-muted)}
+
+/* CATALOGUE GRID */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.cat-card{background:#fff;border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--shadow-xs);transition:all .2s var(--ease);
+  position:relative}
+.cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.cat-img{width:100%;height:130px;object-fit:cover;background:var(--surface-2);display:block}
+.cat-body{padding:12px}
+.cat-name{font-weight:700;font-size:.88rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.cat-prices{font-size:.75rem;color:var(--text-muted);display:flex;flex-direction:column;gap:1px}
+.cat-prices b{color:var(--primary-500)}
+.cat-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px}
+.cat-btn{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.95);
+  border:none;font-size:.75rem;box-shadow:var(--shadow-sm);display:flex;
+  align-items:center;justify-content:center;transition:transform .1s}
+.cat-btn:hover{transform:scale(1.1)}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+  z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:20px;
+  overflow-y:auto}
+.modal.show{display:flex;animation:fadeIn .2s var(--ease)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-card{background:#fff;width:100%;max-width:520px;border-radius:var(--radius-lg);
+  padding:28px;box-shadow:var(--shadow-lg);margin:auto;animation:scaleIn .25s var(--ease)}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.modal-card.wide{max-width:720px}
+.modal-card h2{font-size:1.25rem;font-weight:800;margin-bottom:20px;letter-spacing:-.02em}
+.modal-card h3{font-size:1.05rem;font-weight:700;margin-bottom:14px}
+.modal-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.modal-actions .btn{flex:1;min-width:100px}
+
+/* CLIENT APP */
+.client-shell{display:none;min-height:100vh}
+.client-shell.active{display:block}
+.client-hero{background:var(--grad-primary);color:#fff;padding:24px 20px 20px;text-align:center;
+  position:relative;overflow:hidden}
+.client-hero::before{content:'';position:absolute;top:-60%;right:-20%;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(245,158,11,.2) 0%,transparent 70%);border-radius:50%}
+.client-hero-inner{position:relative;z-index:1}
+.client-hero .shop-logo{max-height:80px;margin:0 auto 12px;display:block;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.client-hero .shop-name{font-size:2rem;font-weight:800;letter-spacing:-.03em;
+  text-transform:uppercase;line-height:1.1}
+.client-hero .shop-tag{font-size:.95rem;opacity:.85;margin-top:2px}
+
+.pos-toolbar{background:#fff;padding:12px 20px;display:flex;gap:12px;align-items:center;
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+.pos-search{flex:1;min-width:200px;position:relative}
+.pos-search input{width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);
+  border-radius:10px;font-size:.9rem;background:var(--surface-2)}
+.pos-search input:focus{outline:none;border-color:var(--primary-500);background:#fff}
+.pos-search::before{content:'🔍';position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.5}
+body[dir="rtl"] .pos-search input{padding:10px 40px 10px 14px}
+body[dir="rtl"] .pos-search::before{left:auto;right:14px}
+
+.pos-layout{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:calc(100vh - 200px)}
+.pos-main{padding:20px;overflow-y:auto}
+.pos-sidebar{background:#fff;border-inline-start:1px solid var(--border);
+  padding:20px;overflow-y:auto;max-height:calc(100vh - 130px);position:sticky;top:0;
+  display:flex;flex-direction:column}
+
+.cat-tabs{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-pill{padding:8px 16px;border-radius:20px;background:var(--surface-2);
+  border:1.5px solid var(--border);font-weight:600;font-size:.85rem;white-space:nowrap;
+  color:var(--text-muted);transition:all .15s}
+.cat-pill:hover{border-color:var(--primary-400);color:var(--primary)}
+.cat-pill.active{background:var(--primary);color:#fff;border-color:var(--primary);
+  box-shadow:0 4px 10px -2px rgba(11,31,58,.3)}
+
+.item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.item-tile{background:#fff;border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--shadow-xs);
+  transition:all .15s var(--ease);position:relative;cursor:pointer}
+.item-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--border-2)}
+.item-tile:active{transform:scale(.97)}
+.item-tile img{width:100%;height:120px;object-fit:cover;background:var(--surface-2);display:block}
+.item-body{padding:10px 12px 12px}
+.item-title{font-weight:700;font-size:.85rem;margin-bottom:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-price{color:var(--primary);font-weight:700;font-size:.95rem}
+.item-edit{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.95);border:none;box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem}
+
+.cart-box{display:flex;flex-direction:column;gap:12px;height:100%}
+.cart-title{font-size:1.05rem;font-weight:800;margin-bottom:4px;display:flex;
+  justify-content:space-between;align-items:center}
+.cart-list{flex:1;overflow-y:auto;min-height:60px;max-height:340px;margin:8px 0}
+.cart-row{display:flex;gap:8px;align-items:center;padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.cart-info{flex:1;min-width:0}
+.cart-name{font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-svc{font-size:.72rem;color:var(--text-muted)}
+.cart-qty{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.qty-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border-2);
+  background:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transition:all .1s;font-size:.9rem}
+.qty-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.cart-price{font-weight:700;font-size:.85rem;min-width:60px;text-align:end}
+
+.total-panel{padding:14px;background:var(--surface-2);border-radius:12px;
+  border:1px solid var(--border);margin-top:auto}
+.total-line{display:flex;justify-content:space-between;font-size:.85rem;
+  color:var(--text-muted);margin-bottom:6px}
+.total-line.grand{font-size:1.15rem;font-weight:800;color:var(--primary);
+  margin-top:8px;padding-top:10px;border-top:2px solid var(--border);margin-bottom:0}
+
+/* MOBILE */
+@media (max-width:900px){
+  .master-layout{grid-template-columns:1fr}
+  .master-sidebar{position:static;max-height:none;border-inline-end:none;
+    border-bottom:1px solid var(--border)}
+  .master-content{padding:20px}
+  .pos-layout{grid-template-columns:1fr}
+  .pos-sidebar{display:none}
+  .mobile-cart-fab{position:fixed;bottom:24px;right:24px;width:60px;height:60px;
+    border-radius:50%;background:var(--grad-primary);color:#fff;border:none;
+    font-size:1.6rem;box-shadow:0 8px 24px rgba(11,31,58,.4);z-index:900;
+    display:flex;align-items:center;justify-content:center}
+  .mobile-cart-fab .badge{position:absolute;top:-4px;right:-4px;background:var(--accent);
+    color:#fff;border-radius:50%;width:22px;height:22px;font-size:.75rem;
+    display:flex;align-items:center;justify-content:center;font-weight:800}
+  body[dir="rtl"] .mobile-cart-fab{right:auto;left:24px}
+  body[dir="rtl"] .mobile-cart-fab .badge{right:auto;left:-4px}
+  .mobile-cart-panel{position:fixed;bottom:0;left:0;right:0;background:#fff;
+    border-radius:20px 20px 0 0;padding:20px;z-index:1000;max-height:88vh;
+    overflow-y:auto;transform:translateY(100%);transition:transform .3s var(--ease);
+    box-shadow:var(--shadow-lg)}
+  .mobile-cart-panel.open{transform:translateY(0)}
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:999;
+    opacity:0;pointer-events:none;transition:opacity .2s}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .client-hero .shop-name{font-size:1.6rem}
+}
+@media (min-width:901px){
+  .mobile-cart-fab,.mobile-cart-panel,.overlay{display:none!important}
+}
+
+/* PRINT */
+@media print{
+  body *{visibility:hidden}
+  .printable,.printable *{visibility:visible}
+  .printable{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff}
+  .modal{position:static;background:#fff;padding:0}
+  .modal-card{box-shadow:none;max-height:none}
+  .no-print{display:none!important}
+}
+
+/* MISC */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;
+  display:inline-block;margin-inline-end:4px}
+.hidden{display:none!important}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ AUTH ============ -->
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <button class="lang-floating" onclick="toggleLanguage()" id="authLangBtn">🌐 العربية</button>
+    <div class="auth-logo">🧺</div>
+    <div class="auth-title" data-i18n="login_title">Laundry Manager</div>
+    <div class="auth-sub" data-i18n="login_sub">Sign in to your workspace</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('master')" id="tabMasterBtn" data-i18n="tab_master">Master</button>
+      <button class="auth-tab" onclick="switchAuthTab('client')" id="tabClientBtn" data-i18n="tab_client">Shop</button>
+      <button class="auth-tab" onclick="switchAuthTab('driver')" id="tabDriverBtn" data-i18n="tab_driver">Driver</button>
+    </div>
+
+    <div id="formMaster">
+      <div class="field">
+        <label data-i18n="master_password">Master Password</label>
+        <input type="password" id="masterPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')masterLogin()">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="masterLogin()" data-i18n="login_master">Sign In</button>
+      <div style="text-align:center;margin-top:14px">
+        <span class="link" onclick="showForgotModal()" data-i18n="forgot_password">Forgot password?</span>
+      </div>
+    </div>
+
+    <div id="formClient" class="hidden">
+      <div class="field">
+        <label data-i18n="shop_id">Shop ID</label>
+        <input type="text" id="clientShopId" placeholder="e.g., abc123">
+      </div>
+      <div class="field">
+        <label data-i18n="password">Password</label>
+        <input type="password" id="clientPass" placeholder="Owner or staff password" onkeydown="if(event.key==='Enter')clientLogin()">
+        <small data-i18n="owner_staff_note">Owner → full access · Staff → POS only</small>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="clientLogin()" data-i18n="login_shop">Sign In</button>
+    </div>
+
+    <div id="formDriver" class="hidden">
+      <div class="field">
+        <label data-i18n="shop_id">Shop ID</label>
+        <input type="text" id="driverShopId" placeholder="Shop ID">
+      </div>
+      <div class="field">
+        <label data-i18n="driver_name">Driver Name</label>
+        <input type="text" id="driverNameInput" placeholder="e.g., Fazal">
+      </div>
+      <div class="field">
+        <label data-i18n="password">Password</label>
+        <input type="password" id="driverPass" placeholder="Driver password" onkeydown="if(event.key==='Enter')driverLogin()">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="driverLogin()" data-i18n="login_driver">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MASTER DASHBOARD ============ -->
+<div id="masterApp" class="app-shell">
+  <header class="app-header">
+    <div class="brand">🧺 Master Console</div>
+    <span id="syncBadge" class="header-chip">
+      <span class="sync-dot"></span><span id="syncText">Local</span>
+    </span>
+    <div class="spacer"></div>
+    <button class="header-chip" onclick="openMasterSettings()" title="Settings">⚙️</button>
+    <button class="header-chip" onclick="toggleLanguage()" id="masterLangBtn">🌐</button>
+    <button class="header-chip" onclick="logoutMaster()" title="Logout">🚪</button>
+  </header>
+
+  <div class="master-layout">
+    <aside class="master-sidebar">
+      <div class="sidebar-head">
+        <h2 data-i18n="clients">Clients</h2>
+        <button class="btn btn-primary btn-sm" onclick="openClientEditor()">+ <span data-i18n="new">New</span></button>
+      </div>
+      <div class="sidebar-search">
+        <input type="text" id="clientSearchInput" placeholder="Search clients..." oninput="renderClientList()">
+      </div>
+      <div id="clientListContainer"></div>
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+        <button class="btn btn-outline btn-block btn-sm" onclick="openBackupModal()">💾 <span data-i18n="backup">Backup & Restore</span></button>
+      </div>
+    </aside>
+
+    <main class="master-content" id="masterContent">
+      <div class="master-empty">
+        <div class="icon">🧺</div>
+        <h2>Select a client to manage</h2>
+        <p>Choose a shop from the sidebar or create a new one.</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ============ CLIENT (POS) ============ -->
+<div id="clientApp" class="client-shell">
+  <header class="client-hero">
+    <div class="client-hero-inner">
+      <img id="shopLogo" class="shop-logo" src="" alt="" style="display:none">
+      <div id="shopNameText" class="shop-name">Fresh & Clean</div>
+      <div class="shop-tag"><span data-i18n="laundry">Laundry</span> <span id="staffBadge" class="pill pill-warn hidden" data-i18n="staff">Staff</span></div>
+    </div>
+    <div style="position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2">
+      <button class="header-chip" onclick="toggleLanguage()" id="clientLangBtn">🌐</button>
+      <button class="header-chip" id="adminBtn" title="Admin">⚙️</button>
+    </div>
+  </header>
+
+  <div class="pos-toolbar">
+    <div class="pos-search">
+      <input type="text" id="posSearchInput" placeholder="Search items..." oninput="filterPosItems()">
+    </div>
+    <div class="quick-toggle" style="display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--text-muted)">
+      <span data-i18n="quick_add">Quick Add</span>
+      <div id="quickAddSwitch" onclick="toggleQuickAdd()" style="width:40px;height:22px;background:var(--border-2);
+        border-radius:11px;position:relative;cursor:pointer;transition:background .2s">
+        <div style="position:absolute;top:2px;left:2px;width:18px;height:18px;
+          background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pos-layout">
+    <div class="pos-main">
+      <div id="posCatTabs" class="cat-tabs"></div>
+      <div id="posItemsGrid" class="item-grid"></div>
+    </div>
+
+    <aside class="pos-sidebar">
+      <div class="cart-title">
+        <span data-i18n="current_order">Current Order</span>
+        <span id="posCartCount" class="pill pill-neutral">0</span>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <input type="text" id="custName" placeholder="Customer name">
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <input type="tel" id="custPhone" placeholder="Phone">
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <input type="text" id="custAddress" placeholder="Address (optional)">
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;margin-bottom:8px">
+        <input type="checkbox" id="markDelivery" style="width:auto" onchange="toggleDelivery('desktop')">
+        <span data-i18n="mark_delivery">Mark for delivery</span>
+      </label>
+      <div id="deliveryFields" class="hidden">
+        <div class="field" style="margin-bottom:8px">
+          <select id="driverSelect"></select>
+        </div>
+        <div class="field" style="margin-bottom:8px">
+          <select id="timeSlotSelect"></select>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;margin-bottom:8px">
+        <input type="checkbox" id="applyDiscount" style="width:auto" onchange="toggleDiscount('desktop')">
+        <span data-i18n="apply_discount">Apply discount (%)</span>
+      </label>
+      <div id="discountBox" class="hidden" style="margin-bottom:8px">
+        <input type="number" id="discountPercent" min="0" max="100" value="0"
+          placeholder="% off" oninput="renderPosCart()"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px">
+      </div>
+
+      <div class="cart-list" id="posCartList"></div>
+      <div class="total-panel">
+        <div class="total-line"><span data-i18n="subtotal">Subtotal</span><span id="posSubtotal">0.000 BHD</span></div>
+        <div class="total-line hidden" id="posDiscountLine"><span data-i18n="discount">Discount</span><span id="posDiscount">0.000 BHD</span></div>
+        <div class="total-line grand"><span data-i18n="total">Total</span><span id="posTotal">0.000 BHD</span></div>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:12px" onclick="generateBill()" data-i18n="generate_bill">🧾 Generate Bill</button>
+      <button class="btn btn-outline btn-block btn-sm" style="margin-top:6px" onclick="clearPosCart()" data-i18n="clear">Clear</button>
+    </aside>
+  </div>
+
+  <button class="mobile-cart-fab" onclick="openMobileCart()">
+    🧺<span class="badge" id="mobileCartBadge" style="display:none">0</span>
+  </button>
+  <div class="overlay" id="posOverlay" onclick="closeMobileCart()"></div>
+  <div class="mobile-cart-panel" id="mobileCartPanel">
+    <div class="cart-title" style="margin-bottom:14px">
+      <span data-i18n="current_order">Current Order</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeMobileCart()">✕</button>
+    </div>
+    <div class="field"><input type="text" id="custNameM" placeholder="Customer name"></div>
+    <div class="field"><input type="tel" id="custPhoneM" placeholder="Phone"></div>
+    <div class="field"><input type="text" id="custAddressM" placeholder="Address (optional)"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;margin-bottom:8px">
+      <input type="checkbox" id="markDeliveryM" style="width:auto" onchange="toggleDelivery('mobile')">
+      <span data-i18n="mark_delivery">Mark for delivery</span>
+    </label>
+    <div id="deliveryFieldsM" class="hidden">
+      <div class="field"><select id="driverSelectM"></select></div>
+      <div class="field"><select id="timeSlotSelectM"></select></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:600;margin-bottom:8px">
+      <input type="checkbox" id="applyDiscountM" style="width:auto" onchange="toggleDiscount('mobile')">
+      <span data-i18n="apply_discount">Apply discount (%)</span>
+    </label>
+    <div id="discountBoxM" class="hidden" style="margin-bottom:8px">
+      <input type="number" id="discountPercentM" min="0" max="100" value="0"
+        placeholder="% off" oninput="renderPosCart()"
+        style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px">
+    </div>
+    <div class="cart-list" id="posCartListM"></div>
+    <div class="total-panel">
+      <div class="total-line"><span data-i18n="subtotal">Subtotal</span><span id="posSubtotalM">0.000 BHD</span></div>
+      <div class="total-line hidden" id="posDiscountLineM"><span data-i18n="discount">Discount</span><span id="posDiscountM">0.000 BHD</span></div>
+      <div class="total-line grand"><span data-i18n="total">Total</span><span id="posTotalM">0.000 BHD</span></div>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:12px" onclick="generateBill()" data-i18n="generate_bill">🧾 Generate Bill</button>
+  </div>
+</div>
+
+<!-- ============ DRIVER ============ -->
+<div id="driverApp" class="client-shell">
+  <header class="client-hero">
+    <div class="client-hero-inner">
+      <div id="driverShopName" class="shop-name">Shop</div>
+      <div class="shop-tag" id="driverNameDisplay"></div>
+    </div>
+    <div style="position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2">
+      <button class="header-chip" onclick="toggleLanguage()" id="driverLangBtn">🌐</button>
+      <button class="header-chip" onclick="driverLogout()" title="Logout">🚪</button>
+    </div>
+  </header>
+  <div style="max-width:900px;margin:0 auto;padding:20px">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchDriverTab('pickups')" id="driverTabPickups">📦 <span data-i18n="pickups">Pickups</span></button>
+      <button class="tab-btn" onclick="switchDriverTab('deliveries')" id="driverTabDeliveries">🚚 <span data-i18n="deliveries">Deliveries</span></button>
+    </div>
+    <div id="driverPickupsList"></div>
+    <div id="driverDeliveriesList" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+
+<!-- Forgot master password -->
+<div class="modal" id="forgotModal">
+  <div class="modal-card">
+    <h2 data-i18n="reset_password">Reset Master Password</h2>
+    <p style="color:var(--text-muted);margin-bottom:16px;font-size:.9rem" data-i18n="reset_password_help">Enter the WhatsApp number you set in Settings.</p>
+    <div class="field"><label data-i18n="whatsapp_number">WhatsApp Number</label><input id="recoveryWa" placeholder="+973..."></div>
+    <div class="field"><label data-i18n="new_password">New Password</label><input type="password" id="recoveryNewPass"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="resetMasterPassword()" data-i18n="reset">Reset</button>
+      <button class="btn btn-outline" onclick="closeModal('forgotModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Client editor (master) -->
+<div class="modal" id="clientEditorModal">
+  <div class="modal-card">
+    <h2 id="clientEditorTitle">Add Client</h2>
+    <div class="field"><label data-i18n="shop_name">Shop Name</label><input id="ceShopName"></div>
+    <div class="field"><label data-i18n="address">Address</label><input id="ceAddress"></div>
+    <div class="field"><label data-i18n="logo">Logo</label><input type="file" id="ceLogoFile" accept="image/*"><small data-i18n="logo_note">Leave empty for text-only logo</small></div>
+    <div class="field"><label data-i18n="owner_password">Owner Password</label><input type="password" id="cePassword"></div>
+    <div class="field"><label data-i18n="staff_password">Staff Password (POS only)</label><input type="password" id="ceStaffPassword"></div>
+    <div class="field"><label data-i18n="expiry_date">Expiry Date</label><input type="date" id="ceExpiry"></div>
+    <div class="field"><label data-i18n="time_slots">Time Slots (comma-separated)</label><input id="ceTimeSlots" placeholder="8-9 AM,9-10 AM,..."></div>
+    <div class="field"><label data-i18n="currency">Currency Symbol</label><input id="ceCurrency" placeholder="BHD"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveClientEditor()" data-i18n="save">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('clientEditorModal')" data-i18n="cancel">Cancel</button>
+    </div>
+    <button class="btn btn-outline btn-block btn-sm hidden" id="ceDeleteBtn"
+      style="margin-top:10px;color:var(--danger);border-color:var(--danger)"
+      onclick="deleteClient()" data-i18n="delete_client">Delete Client</button>
+  </div>
+</div>
+
+<!-- Item editor (master + client admin) -->
+<div class="modal" id="itemEditorModal">
+  <div class="modal-card">
+    <h2 id="itemEditorTitle">Add Item</h2>
+    <div class="field"><label data-i18n="item_name">Item Name</label><input id="ieName"></div>
+    <div class="field"><label data-i18n="category">Category</label><input id="ieCategory" placeholder="e.g., Traditional"></div>
+    <div class="field"><label data-i18n="image">Image</label><input type="file" id="ieImageFile" accept="image/*">
+      <input type="url" id="ieImageUrl" placeholder="or paste URL" style="margin-top:6px"></div>
+    <hr>
+    <div class="field"><label data-i18n="wash_iron">Wash & Iron Price</label><input type="number" step="0.001" id="iePriceWash"></div>
+    <div class="field"><label data-i18n="dry_clean">Dry Clean Price</label><input type="number" step="0.001" id="iePriceDry"></div>
+    <div class="field"><label data-i18n="iron_only">Iron Only Price</label><input type="number" step="0.001" id="iePriceIron"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveItemEditor()" data-i18n="save">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('itemEditorModal')" data-i18n="cancel">Cancel</button>
+    </div>
+    <button class="btn btn-outline btn-block btn-sm hidden" id="ieDeleteBtn"
+      style="margin-top:10px;color:var(--danger);border-color:var(--danger)"
+      onclick="deleteItem()" data-i18n="delete_item">Delete Item</button>
+  </div>
+</div>
+
+<!-- Service picker (POS) -->
+<div class="modal" id="servicePickerModal">
+  <div class="modal-card">
+    <h2><span data-i18n="add">Add</span> <span id="serviceItemName"></span></h2>
+    <div id="serviceOptions" style="display:flex;flex-direction:column;gap:8px;margin:16px 0"></div>
+    <div class="field"><label data-i18n="price">Price</label><input type="number" step="0.001" id="servicePrice"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="confirmAddToCart()" data-i18n="add_to_order">Add to Order</button>
+      <button class="btn btn-outline" onclick="closeModal('servicePickerModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bill viewer -->
+<div class="modal" id="billViewerModal">
+  <div class="modal-card" id="billViewerContent"></div>
+</div>
+
+<!-- Master settings -->
+<div class="modal" id="masterSettingsModal">
+  <div class="modal-card">
+    <h2 data-i18n="master_settings">Master Settings</h2>
+    <div class="field"><label data-i18n="whatsapp_number">WhatsApp Number</label><input id="msWhatsapp"></div>
+    <div class="field"><label data-i18n="new_master_password">New Master Password</label><input type="password" id="msNewPassword"></div>
+    <hr>
+    <h3 data-i18n="firebase_sync">Cloud Sync</h3>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:10px" data-i18n="firebase_help">Optional: paste your Firebase config to sync across devices.</p>
+    <div class="field"><textarea id="msFirebaseConfig" rows="5" style="font-family:monospace;font-size:.8rem"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveMasterSettings()" data-i18n="save">Save</button>
+      <button class="btn btn-outline" onclick="saveFirebaseConfig()" data-i18n="save_firebase">Save Firebase</button>
+      <button class="btn btn-outline" onclick="disableFirebase()" data-i18n="disable_firebase">Disable Sync</button>
+      <button class="btn btn-ghost" onclick="closeModal('masterSettingsModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup modal -->
+<div class="modal" id="backupModal">
+  <div class="modal-card">
+    <h2 data-i18n="backup_title">Backup & Restore</h2>
+    <p style="color:var(--text-muted);margin-bottom:20px;font-size:.9rem" data-i18n="backup_desc">Export all data as JSON, or restore from a backup file.</p>
+    <button class="btn btn-primary btn-block" onclick="exportBackup()">⬇️ <span data-i18n="export_all">Export Backup</span></button>
+    <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="document.getElementById('backupFileInput').click()">⬆️ <span data-i18n="import_all">Restore from File</span></button>
+    <input type="file" id="backupFileInput" accept=".json" hidden onchange="importBackup(event)">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('backupModal')" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal" id="paymentModal">
+  <div class="modal-card">
+    <h2 data-i18n="mark_paid">Mark as Paid</h2>
+    <p style="color:var(--text-muted);margin-bottom:16px">Bill #<span id="paymentBillNo"></span></p>
+    <div class="field"><label data-i18n="payment_method">Payment Method</label>
+      <select id="paymentMethod"><option value="Cash">Cash</option><option value="Benefit Pay">Benefit Pay</option><option value="Card">Card</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="confirmPayment()" data-i18n="confirm_payment">Confirm</button>
+      <button class="btn btn-outline" onclick="closeModal('paymentModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Driver manager -->
+<div class="modal" id="driverManagerModal">
+  <div class="modal-card">
+    <h2><span data-i18n="manage_drivers_for">Drivers for</span> <span id="driversClientName"></span></h2>
+    <div id="driversEditorList" style="margin-bottom:16px"></div>
+    <button class="btn btn-outline btn-block btn-sm" onclick="addDriverRow()">+ <span data-i18n="add_driver">Add Driver</span></button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveDrivers()" data-i18n="save">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('driverManagerModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============ CONSTANTS ============ */
+const KEYS = {
+  masterPass: 'master_password',
+  ownerWa: 'owner_whatsapp',
+  clients: 'laundry_clients',
+  lang: 'laundry_lang',
+  fbConfig: 'firebase_config'
+};
+const DEFAULT_MASTER_PASS = 'master123';
+const DEFAULT_WHATSAPP = '+973 36817742';
+
+/* ============ STATE ============ */
+let currentMode = null;
+let currentClient = null;
+let currentDriver = { client: null, name: null };
+let selectedMasterClient = null;
+let isClientAdmin = false;
+let isStaff = false;
+let cart = [];
+let quickAdd = false;
+let editingItemId = null;
+let pendingItemId = null;
+let editingClientId = null;
+let editingBillNumber = null;
+let pendingPaymentBillNumber = null;
+let firebaseReady = false;
+let firebaseDB = null;
+let pullFromCloud = async () => {};
+
+/* ============ HELPERS ============ */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const safeParse = (s, f) => { try { return JSON.parse(s); } catch { return f; } };
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast = (msg, type = 'info') => {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type === 'info' ? '' : type);
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'toast', 3000);
+};
+
+/* ============ STORAGE ============ */
+const getMasterPass = () => localStorage.getItem(KEYS.masterPass) || DEFAULT_MASTER_PASS;
+const setMasterPass = v => localStorage.setItem(KEYS.masterPass, v);
+const getOwnerWa = () => localStorage.getItem(KEYS.ownerWa) || DEFAULT_WHATSAPP;
+const setOwnerWa = v => localStorage.setItem(KEYS.ownerWa, v);
+const getClients = () => safeParse(localStorage.getItem(KEYS.clients), []);
+const setClients = arr => localStorage.setItem(KEYS.clients, JSON.stringify(arr));
+const ck = (cid, k) => `client_${cid}_${k}`;
+const getClientItems = cid => safeParse(localStorage.getItem(ck(cid, 'items')), []);
+const setClientItems = (cid, arr) => { localStorage.setItem(ck(cid, 'items'), JSON.stringify(arr)); if (firebaseReady) syncToCloud(cid, 'items', arr); };
+const getClientBills = cid => safeParse(localStorage.getItem(ck(cid, 'bills')), []);
+const setClientBills = (cid, arr) => { localStorage.setItem(ck(cid, 'bills'), JSON.stringify(arr)); if (firebaseReady) syncToCloud(cid, 'bills', arr); };
+const getClientCounter = cid => parseInt(localStorage.getItem(ck(cid, 'counter')) || '1000', 10);
+const setClientCounter = (cid, n) => localStorage.setItem(ck(cid, 'counter'), n);
+const getClientQuickAdd = cid => localStorage.getItem(ck(cid, 'quickAdd')) === 'true';
+const setClientQuickAdd = (cid, v) => localStorage.setItem(ck(cid, 'quickAdd'), v);
+const getLang = () => localStorage.getItem(KEYS.lang) || 'en';
+const setLang = v => localStorage.setItem(KEYS.lang, v);
+const getFbConfig = () => safeParse(localStorage.getItem(KEYS.fbConfig), null);
+const getCurrency = (client) => client?.currency || 'BHD';
+
+/* ============ i18n ============ */
+const I18N = {
+  en: {
+    login_title: 'Laundry Manager', login_sub: 'Sign in to your workspace',
+    tab_master: 'Master', tab_client: 'Shop', tab_driver: 'Driver',
+    master_password: 'Master Password', login_master: 'Sign In',
+    forgot_password: 'Forgot password?', shop_id: 'Shop ID', password: 'Password',
+    owner_staff_note: 'Owner → full access · Staff → POS only',
+    login_shop: 'Sign In', driver_name: 'Driver Name', login_driver: 'Sign In',
+    reset_password: 'Reset Master Password', reset_password_help: 'Enter the WhatsApp number set in Settings.',
+    whatsapp_number: 'WhatsApp Number', new_password: 'New Password', reset: 'Reset',
+    cancel: 'Cancel', save: 'Save', close: 'Close', delete: 'Delete',
+    clients: 'Clients', new: 'New', backup: 'Backup & Restore',
+    shop_name: 'Shop Name', address: 'Address', logo: 'Logo',
+    logo_note: 'Leave empty for text-only logo',
+    owner_password: 'Owner Password', staff_password: 'Staff Password (POS only)',
+    expiry_date: 'Expiry Date', time_slots: 'Time Slots (comma-separated)',
+    currency: 'Currency Symbol', delete_client: 'Delete Client',
+    item_name: 'Item Name', category: 'Category', image: 'Image',
+    wash_iron: 'Wash & Iron Price', dry_clean: 'Dry Clean Price', iron_only: 'Iron Only Price',
+    delete_item: 'Delete Item', laundry: 'Laundry', staff: 'Staff',
+    quick_add: 'Quick Add', current_order: 'Current Order',
+    mark_delivery: 'Mark for delivery', apply_discount: 'Apply discount (%)',
+    subtotal: 'Subtotal', discount: 'Discount', total: 'Total',
+    generate_bill: 'Generate Bill', clear: 'Clear',
+    add: 'Add', price: 'Price', add_to_order: 'Add to Order',
+    pickups: 'Pickups', deliveries: 'Deliveries',
+    master_settings: 'Master Settings', firebase_sync: 'Cloud Sync',
+    firebase_help: 'Optional: paste your Firebase config to sync across devices.',
+    save_firebase: 'Save Firebase', disable_firebase: 'Disable Sync',
+    backup_title: 'Backup & Restore', backup_desc: 'Export all data as JSON, or restore from a backup file.',
+    export_all: 'Export Backup', import_all: 'Restore from File',
+    mark_paid: 'Mark as Paid', payment_method: 'Payment Method', confirm_payment: 'Confirm',
+    manage_drivers_for: 'Drivers for', add_driver: 'Add Driver',
+    overview: 'Overview', catalogue: 'Catalogue', bills: 'Bills',
+    customers: 'Customers', drivers: 'Drivers', settings: 'Settings',
+    active: 'Active', expired: 'Expired', logout: 'Logout',
+    wrong_password: 'Wrong password', saved: 'Saved!', deleted: 'Deleted',
+    total_clients: 'Clients', total_bills: 'Bills', total_revenue: 'Revenue',
+    total_items: 'Items', revenue: 'Revenue', pending: 'Pending',
+    paid: 'Paid', edit: 'Edit', view: 'View', add_item: '+ Add Item',
+    add_bill: 'Bills', no_bills: 'No bills yet', no_items: 'No items',
+    no_customers: 'No customers yet', no_drivers: 'No drivers yet',
+    customer: 'Customer', phone: 'Phone', date: 'Date', items: 'Items',
+    status: 'Status', actions: 'Actions', unknown: 'Unknown',
+    dashboard: 'Dashboard', new_client: 'New Client',
+    confirm_delete: 'Delete this?', export_data: 'Export Data', import_data: 'Import Data'
+  },
+  ar: {
+    login_title: 'مدير المغسلة', login_sub: 'سجل الدخول إلى مساحة العمل',
+    tab_master: 'المدير', tab_client: 'المحل', tab_driver: 'السائق',
+    master_password: 'كلمة سر المدير', login_master: 'دخول',
+    forgot_password: 'نسيت كلمة السر؟', shop_id: 'معرف المحل', password: 'كلمة السر',
+    owner_staff_note: 'المالك → صلاحية كاملة · الموظف → نقطة البيع فقط',
+    login_shop: 'دخول', driver_name: 'اسم السائق', login_driver: 'دخول',
+    reset_password: 'إعادة تعيين كلمة السر', reset_password_help: 'أدخل رقم الواتساب المسجل في الإعدادات.',
+    whatsapp_number: 'رقم الواتساب', new_password: 'كلمة سر جديدة', reset: 'إعادة تعيين',
+    cancel: 'إلغاء', save: 'حفظ', close: 'إغلاق', delete: 'حذف',
+    clients: 'العملاء', new: 'جديد', backup: 'نسخ واستعادة',
+    shop_name: 'اسم المحل', address: 'العنوان', logo: 'الشعار',
+    logo_note: 'اتركه فارغاً لشعار نصي',
+    owner_password: 'كلمة سر المالك', staff_password: 'كلمة سر الموظف',
+    expiry_date: 'تاريخ الانتهاء', time_slots: 'الفترات الزمنية (مفصولة بفواصل)',
+    currency: 'رمز العملة', delete_client: 'حذف المحل',
+    item_name: 'اسم الصنف', category: 'الفئة', image: 'الصورة',
+    wash_iron: 'سعر غسيل وكوي', dry_clean: 'سعر تنظيف جاف', iron_only: 'سعر كوي فقط',
+    delete_item: 'حذف الصنف', laundry: 'مغسلة', staff: 'موظف',
+    quick_add: 'إضافة سريعة', current_order: 'الطلب الحالي',
+    mark_delivery: 'تحديد للتوصيل', apply_discount: 'خصم (%)',
+    subtotal: 'المجموع الفرعي', discount: 'الخصم', total: 'المجموع',
+    generate_bill: 'إصدار فاتورة', clear: 'مسح',
+    add: 'أضف', price: 'السعر', add_to_order: 'أضف للطلب',
+    pickups: 'استلامات', deliveries: 'توصيلات',
+    master_settings: 'إعدادات المدير', firebase_sync: 'مزامنة سحابية',
+    firebase_help: 'اختياري: الصق إعدادات Firebase للمزامنة بين الأجهزة.',
+    save_firebase: 'حفظ Firebase', disable_firebase: 'تعطيل المزامنة',
+    backup_title: 'نسخ واستعادة', backup_desc: 'صدّر البيانات كملف JSON أو استعدها من ملف.',
+    export_all: 'تصدير نسخة', import_all: 'استعادة من ملف',
+    mark_paid: 'تحديد كمدفوع', payment_method: 'طريقة الدفع', confirm_payment: 'تأكيد',
+    manage_drivers_for: 'سائقو', add_driver: 'إضافة سائق',
+    overview: 'نظرة عامة', catalogue: 'القائمة', bills: 'الفواتير',
+    customers: 'العملاء', drivers: 'السائقون', settings: 'الإعدادات',
+    active: 'نشط', expired: 'منتهي', logout: 'خروج',
+    wrong_password: 'كلمة سر خاطئة', saved: 'تم الحفظ!', deleted: 'تم الحذف',
+    total_clients: 'المحلات', total_bills: 'الفواتير', total_revenue: 'الإيرادات',
+    total_items: 'الأصناف', revenue: 'الإيرادات', pending: 'قيد الانتظار',
+    paid: 'مدفوع', edit: 'تعديل', view: 'عرض', add_item: '+ صنف جديد',
+    add_bill: 'فواتير', no_bills: 'لا فواتير بعد', no_items: 'لا أصناف',
+    no_customers: 'لا عملاء بعد', no_drivers: 'لا سائقين',
+    customer: 'العميل', phone: 'الهاتف', date: 'التاريخ', items: 'الأصناف',
+    status: 'الحالة', actions: 'إجراءات', unknown: 'غير معروف',
+    dashboard: 'لوحة التحكم', new_client: 'محل جديد',
+    confirm_delete: 'هل تريد الحذف؟', export_data: 'تصدير', import_data: 'استيراد'
+  }
+};
+const t = k => (I18N[getLang()]?.[k]) ?? I18N.en[k] ?? k;
+const tEn = k => I18N.en[k] ?? k;
+
+function applyLanguage() {
+  const lang = getLang();
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  const other = lang === 'en' ? 'العربية' : 'English';
+  ['authLangBtn','masterLangBtn','clientLangBtn','driverLangBtn'].forEach(id => {
+    const el = $(id); if (el) el.textContent = '🌐 ' + other;
+  });
+}
+
+window.toggleLanguage = () => {
+  setLang(getLang() === 'en' ? 'ar' : 'en');
+  applyLanguage();
+  if (currentMode === 'master') renderClientList();
+  if (currentMode === 'client') { renderPosTabs(); renderPosItems(); renderPosCart(); }
+  if (currentMode === 'driver') loadDriverOrders();
+};
+
+/* ============ FIREBASE SYNC ============ */
+async function syncToCloud(cid, type, data) {
+  if (!firebaseDB) return;
+  try { await firebaseDB.set(cid, type, data); } catch (e) { console.warn('Sync error', e); }
+}
+
+async function initFirebase() {
+  const cfg = getFbConfig();
+  if (!cfg?.projectId) { updateSyncBadge(); return; }
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const app = initializeApp(cfg);
+    const db = getFirestore(app);
+    firebaseDB = {
+      set: async (cid, type, data) => setDoc(doc(db, 'clients', cid, 'data', type), { data, updatedAt: Date.now() }),
+      get: async (cid, type) => { const s = await getDoc(doc(db, 'clients', cid, 'data', type)); return s.exists() ? s.data().data : null; }
+    };
+    firebaseReady = true;
+    pullFromCloud = async (cid) => {
+      try {
+        const remoteItems = await firebaseDB.get(cid, 'items');
+        const remoteBills = await firebaseDB.get(cid, 'bills');
+        if (remoteItems) localStorage.setItem(ck(cid, 'items'), JSON.stringify(remoteItems));
+        if (remoteBills) localStorage.setItem(ck(cid, 'bills'), JSON.stringify(remoteBills));
+      } catch (e) { console.warn('Pull error', e); }
+    };
+    updateSyncBadge();
+    toast('☁️ Cloud sync enabled', 'success');
+  } catch (e) { console.warn('Firebase init failed', e); updateSyncBadge(); }
+}
+
+function updateSyncBadge() {
+  const badge = $('syncBadge'); const text = $('syncText');
+  if (!badge || !text) return;
+  if (firebaseReady) { text.textContent = 'Cloud Sync'; }
+  else if (getFbConfig()) { text.textContent = 'Offline'; }
+  else { text.textContent = 'Local'; }
+}
+
+window.saveFirebaseConfig = () => {
+  try {
+    const raw = $('msFirebaseConfig').value.trim();
+    if (!raw) { localStorage.removeItem(KEYS.fbConfig); toast('Config cleared'); return; }
+    const cfg = JSON.parse(raw);
+    if (!cfg.projectId) throw new Error('Missing projectId');
+    localStorage.setItem(KEYS.fbConfig, JSON.stringify(cfg));
+    initFirebase();
+    closeModal('masterSettingsModal');
+  } catch (e) { toast('Invalid JSON: ' + e.message, 'error'); }
+};
+window.disableFirebase = () => {
+  localStorage.removeItem(KEYS.fbConfig);
+  firebaseReady = false; firebaseDB = null;
+  updateSyncBadge(); toast('Sync disabled');
+};
+
+/* ============ BACKUP ============ */
+window.exportBackup = () => {
+  const backup = {
+    version: 2, exported: new Date().toISOString(),
+    masterPassword: getMasterPass(), ownerWhatsapp: getOwnerWa(),
+    lang: getLang(), firebaseConfig: getFbConfig(),
+    clients: getClients(), clientData: {}
+  };
+  getClients().forEach(c => {
+    backup.clientData[c.id] = {
+      items: getClientItems(c.id), bills: getClientBills(c.id),
+      counter: getClientCounter(c.id), quickAdd: getClientQuickAdd(c.id)
+    };
+  });
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `laundry-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('✅ Backup exported', 'success');
+};
+window.importBackup = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.clients)) throw new Error('Invalid backup');
+      if (!confirm('⚠️ This will REPLACE all current data. Continue?')) return;
+      if (d.masterPassword) setMasterPass(d.masterPassword);
+      if (d.ownerWhatsapp) setOwnerWa(d.ownerWhatsapp);
+      if (d.lang) setLang(d.lang);
+      if (d.firebaseConfig) localStorage.setItem(KEYS.fbConfig, JSON.stringify(d.firebaseConfig));
+      setClients(d.clients);
+      Object.entries(d.clientData || {}).forEach(([cid, x]) => {
+        if (x.items) localStorage.setItem(ck(cid, 'items'), JSON.stringify(x.items));
+        if (x.bills) localStorage.setItem(ck(cid, 'bills'), JSON.stringify(x.bills));
+        if (x.counter) localStorage.setItem(ck(cid, 'counter'), x.counter);
+        if (x.quickAdd !== undefined) localStorage.setItem(ck(cid, 'quickAdd'), x.quickAdd);
+      });
+      toast('✅ Restored!', 'success');
+      setTimeout(() => location.reload(), 900);
+    } catch (err) { toast('❌ ' + err.message, 'error'); }
+  };
+  r.readAsText(file); e.target.value = '';
+};
+
+/* ============ MODAL ============ */
+window.closeModal = id => $(id).classList.remove('show');
+
+/* ============ AUTH ============ */
+window.switchAuthTab = tab => {
+  ['master','client','driver'].forEach(x => {
+    $(`form${x.charAt(0).toUpperCase()+x.slice(1)}`).classList.toggle('hidden', x !== tab);
+    $(`tab${x.charAt(0).toUpperCase()+x.slice(1)}Btn`).classList.toggle('active', x === tab);
+  });
+};
+window.masterLogin = () => {
+  if ($('masterPass').value === getMasterPass()) {
+    currentMode = 'master';
+    $('masterPass').value = '';
+    $('authScreen').classList.add('hidden');
+    $('masterApp').classList.add('active');
+    $('clientApp').classList.remove('active');
+    $('driverApp').classList.remove('active');
+    renderClientList();
+    updateSyncBadge();
+  } else toast(t('wrong_password'), 'error');
+};
+window.showForgotModal = () => $('forgotModal').classList.add('show');
+window.resetMasterPassword = () => {
+  const wa = $('recoveryWa').value.trim();
+  const np = $('recoveryNewPass').value;
+  if (!wa || !np) return toast('Fill both fields', 'error');
+  if (wa !== getOwnerWa()) return toast('WhatsApp does not match', 'error');
+  setMasterPass(np);
+  closeModal('forgotModal');
+  toast('✅ Password reset', 'success');
+};
+window.clientLogin = async () => {
+  const shopId = $('clientShopId').value.trim();
+  const pass = $('clientPass').value;
+  const client = getClients().find(c => c.id === shopId);
+  if (!client) return toast('Shop not found', 'error');
+  if (client.password === pass) { isStaff = false; isClientAdmin = true; }
+  else if (client.staffPassword && client.staffPassword === pass) { isStaff = true; isClientAdmin = false; }
+  else return toast(t('wrong_password'), 'error');
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(client.expiry); exp.setHours(23,59,59,999);
+  if (today > exp) return showLockScreen(client);
+  await startClientSession(client);
+};
+window.driverLogin = () => {
+  const sid = $('driverShopId').value.trim();
+  const name = $('driverNameInput').value.trim();
+  const pass = $('driverPass').value;
+  const client = getClients().find(c => c.id === sid);
+  if (!client) return toast('Shop not found', 'error');
+  const driver = (client.drivers || []).find(d => d.name === name);
+  if (!driver) return toast('Driver not found', 'error');
+  if (driver.password !== pass) return toast(t('wrong_password'), 'error');
+  currentMode = 'driver';
+  currentDriver = { client, name };
+  $('authScreen').classList.add('hidden');
+  $('driverApp').classList.add('active');
+  $('driverShopName').textContent = client.shopName;
+  $('driverNameDisplay').textContent = 'Driver: ' + name;
+  loadDriverOrders();
+};
+function showLockScreen(client) {
+  $('authScreen').classList.add('hidden');
+  const div = document.createElement('div');
+  div.className = 'auth-wrap';
+  div.innerHTML = `<div class="auth-card" style="text-align:center">
+    <div style="font-size:3rem;margin-bottom:12px">🔒</div>
+    <h2>License Expired</h2>
+    <p style="color:var(--text-muted);margin-bottom:20px">${escapeHtml(client.shopName)} subscription ended.</p>
+    <button class="btn btn-primary btn-block" onclick="window.open('https://wa.me/${getOwnerWa().replace(/\D/g,'')}','_blank')">📲 Renew via WhatsApp</button>
+    <button class="btn btn-outline btn-block" style="margin-top:8px" onclick="location.reload()">Back to Login</button>
+  </div>`;
+  document.body.appendChild(div);
+}
+
+/* ============ MASTER: CLIENT LIST ============ */
+function renderClientList() {
+  const clients = getClients();
+  const q = ($('clientSearchInput')?.value || '').toLowerCase();
+  const filtered = clients.filter(c => c.shopName.toLowerCase().includes(q) || c.id.includes(q));
+  const container = $('clientListContainer');
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state">${clients.length ? 'No matches' : 'No clients yet. Click + New to start.'}</div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(c => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const exp = new Date(c.expiry); exp.setHours(23,59,59,999);
+    const active = today <= exp;
+    const isSel = selectedMasterClient?.id === c.id;
+    return `<div class="client-item ${isSel ? 'active' : ''}" onclick="selectMasterClient('${c.id}')">
+      <div class="client-name">
+        <span>${escapeHtml(c.shopName)}</span>
+        <span class="client-badge ${active ? 'badge-active' : 'badge-expired'}">${active ? t('active') : t('expired')}</span>
+      </div>
+      <div class="client-meta">ID: ${c.id} · Exp: ${c.expiry}</div>
+    </div>`;
+  }).join('');
+}
+
+window.selectMasterClient = id => {
+  selectedMasterClient = getClients().find(c => c.id === id);
+  renderClientList();
+  renderMasterContent();
+};
+
+/* ============ MASTER: CONTENT ============ */
+let masterTab = 'overview';
+function renderMasterContent() {
+  const c = selectedMasterClient;
+  if (!c) {
+    $('masterContent').innerHTML = `<div class="master-empty">
+      <div class="icon">🧺</div><h2>Select a client to manage</h2>
+      <p>Choose a shop from the sidebar or create a new one.</p></div>`;
+    return;
+  }
+  $('masterContent').innerHTML = `
+    <div class="content-header">
+      <div>
+        <div class="content-title">${escapeHtml(c.shopName)}</div>
+        <div class="content-sub">Shop ID: ${c.id} · Expires ${c.expiry}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openClientEditor('${c.id}')">✏️ ${t('edit')}</button>
+        <button class="btn btn-outline btn-sm" onclick="openDriverManager('${c.id}')">👨‍🔧 ${t('drivers')}</button>
+      </div>
+    </div>
+    <div class="tab-bar">
+      ${['overview','catalogue','bills','customers','settings'].map(tab =>
+        `<button class="tab-btn ${masterTab===tab?'active':''}" onclick="setMasterTab('${tab}')">${t(tab)}</button>`
+      ).join('')}
+    </div>
+    <div id="masterTabContent"></div>`;
+  renderMasterTab();
+}
+window.setMasterTab = tab => { masterTab = tab; renderMasterContent(); };
+
+function renderMasterTab() {
+  const c = selectedMasterClient;
+  if (!c) return;
+  const el = $('masterTabContent');
+  if (masterTab === 'overview') el.innerHTML = renderOverviewTab(c);
+  if (masterTab === 'catalogue') el.innerHTML = renderCatalogueTab(c);
+  if (masterTab === 'bills') el.innerHTML = renderBillsTab(c);
+  if (masterTab === 'customers') el.innerHTML = renderCustomersTab(c);
+  if (masterTab === 'settings') el.innerHTML = renderSettingsTab(c);
+}
+
+function renderOverviewTab(c) {
+  const items = getClientItems(c.id);
+  const bills = getClientBills(c.id);
+  const cur = getCurrency(c);
+  const totalRev = bills.reduce((s, b) => s + (b.total || 0), 0);
+  const pending = bills.filter(b => b.paymentStatus === 'Pending').length;
+  return `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">${t('total_items')}</div>
+        <div class="stat-value">${items.length}</div>
+        <div class="stat-sub">${t('catalogue')}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">${t('total_bills')}</div>
+        <div class="stat-value">${bills.length}</div>
+        <div class="stat-sub">${pending} ${t('pending')}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">${t('total_revenue')}</div>
+        <div class="stat-value">${totalRev.toFixed(3)}</div>
+        <div class="stat-sub">${cur}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">${t('drivers')}</div>
+        <div class="stat-value">${(c.drivers || []).length}</div>
+        <div class="stat-sub">Assigned</div>
+      </div>
+    </div>
+    <div class="list-card">
+      <div class="list-head"><h3>Recent Bills</h3>
+        <button class="btn btn-outline btn-sm" onclick="setMasterTab('bills')">${t('view')} all</button>
+      </div>
+      <div class="list-body">
+        ${bills.slice(0, 5).map(b => `
+          <div class="list-row" onclick="viewMasterBill('${c.id}', ${b.billNumber})">
+            <div class="list-row-info">
+              <div class="list-row-title">#${b.billNumber} — ${escapeHtml(b.customer?.name || 'Walk-in')}</div>
+              <div class="list-row-meta">
+                <span>${new Date(b.date).toLocaleDateString()}</span>
+                <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+              </div>
+            </div>
+            <strong>${b.total.toFixed(3)} ${cur}</strong>
+          </div>`).join('') || `<div class="empty-state">${t('no_bills')}</div>`}
+      </div>
+    </div>`;
+}
+
+function renderCatalogueTab(c) {
+  const items = getClientItems(c.id);
+  const cur = getCurrency(c);
+  return `
+    <div class="list-head" style="background:#fff;border-radius:12px;border:1px solid var(--border);padding:14px 18px;margin-bottom:16px">
+      <h3>${items.length} ${t('total_items')}</h3>
+      <button class="btn btn-primary btn-sm" onclick="openItemEditor('${c.id}')">${t('add_item')}</button>
+    </div>
+    <div class="cat-grid">
+      ${items.map(i => `
+        <div class="cat-card">
+          <img class="cat-img" src="${i.image || `https://placehold.co/300x200/0b1f3a/white?text=${encodeURIComponent(i.name)}`}" alt="">
+          <div class="cat-actions">
+            <button class="cat-btn" onclick="openItemEditor('${c.id}','${i.id}')" title="Edit">✏️</button>
+            <button class="cat-btn" onclick="deleteItemFromCatalogue('${c.id}','${i.id}')" title="Delete">🗑</button>
+          </div>
+          <div class="cat-body">
+            <div class="cat-name">${escapeHtml(i.name)}</div>
+            <div class="cat-prices">
+              <span>W&I: <b>${i.prices.washIron.toFixed(3)}</b></span>
+              <span>Dry: <b>${i.prices.dryClean.toFixed(3)}</b></span>
+              <span>Iron: <b>${i.prices.iron.toFixed(3)}</b></span>
+            </div>
+          </div>
+        </div>`).join('') || `<div class="empty-state" style="grid-column:1/-1">${t('no_items')}</div>`}
+    </div>`;
+}
+
+function renderBillsTab(c) {
+  const bills = getClientBills(c.id);
+  const cur = getCurrency(c);
+  return `
+    <div class="list-card">
+      <div class="list-head">
+        <h3>${bills.length} ${t('bills')}</h3>
+        <input type="text" id="masterBillSearch" placeholder="Search bills..." oninput="renderBillsFiltered('${c.id}')"
+          style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;min-width:200px">
+      </div>
+      <div class="list-body" id="masterBillList">
+        ${bills.map(b => `
+          <div class="list-row" onclick="viewMasterBill('${c.id}', ${b.billNumber})">
+            <div class="list-row-info">
+              <div class="list-row-title">#${b.billNumber} — ${escapeHtml(b.customer?.name || 'Walk-in')}</div>
+              <div class="list-row-meta">
+                <span>${new Date(b.date).toLocaleString()}</span>
+                <span>${b.items.length} ${t('items')}</span>
+                <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+                ${b.delivery ? `<span class="pill pill-info">🚚 ${escapeHtml(b.driverName || '')}</span>` : ''}
+              </div>
+            </div>
+            <strong>${b.total.toFixed(3)} ${cur}</strong>
+          </div>`).join('') || `<div class="empty-state">${t('no_bills')}</div>`}
+      </div>
+    </div>`;
+}
+
+function renderCustomersTab(c) {
+  const bills = getClientBills(c.id);
+  const cur = getCurrency(c);
+  const map = new Map();
+  bills.forEach(b => {
+    if (!b.customer?.phone) return;
+    const k = b.customer.phone;
+    if (!map.has(k)) map.set(k, { ...b.customer, orders: [], total: 0 });
+    const x = map.get(k);
+    x.orders.push(b.billNumber);
+    x.total += b.total || 0;
+  });
+  const list = Array.from(map.values());
+  return `
+    <div class="list-card">
+      <div class="list-head"><h3>${list.length} ${t('customers')}</h3></div>
+      <div class="list-body">
+        ${list.map(cu => `
+          <div class="list-row">
+            <div class="list-row-info">
+              <div class="list-row-title">${escapeHtml(cu.name)}</div>
+              <div class="list-row-meta"><span>📞 ${escapeHtml(cu.phone)}</span><span>${cu.orders.length} orders</span></div>
+            </div>
+            <strong>${cu.total.toFixed(3)} ${cur}</strong>
+          </div>`).join('') || `<div class="empty-state">${t('no_customers')}</div>`}
+      </div>
+    </div>`;
+}
+
+function renderSettingsTab(c) {
+  return `
+    <div class="list-card" style="padding:24px">
+      <h3 style="margin-bottom:16px">Shop Settings</h3>
+      <div class="field"><label>${t('shop_name')}</label><input id="msSetShopName" value="${escapeHtml(c.shopName)}"></div>
+      <div class="field"><label>${t('address')}</label><input id="msSetAddress" value="${escapeHtml(c.address || '')}"></div>
+      <div class="field"><label>${t('currency')}</label><input id="msSetCurrency" value="${escapeHtml(c.currency || 'BHD')}"></div>
+      <div class="field"><label>${t('time_slots')}</label><input id="msSetTimeSlots" value="${escapeHtml(c.timeSlots || '')}"></div>
+      <div class="field"><label>${t('owner_password')}</label><input id="msSetOwnerPass" value="${escapeHtml(c.password || '')}"></div>
+      <div class="field"><label>${t('staff_password')}</label><input id="msSetStaffPass" value="${escapeHtml(c.staffPassword || '')}"></div>
+      <div class="field"><label>${t('expiry_date')}</label><input type="date" id="msSetExpiry" value="${c.expiry}"></div>
+      <button class="btn btn-primary" onclick="saveMasterSettingsForClient('${c.id}')">${t('save')}</button>
+    </div>`;
+}
+
+window.saveMasterSettingsForClient = cid => {
+  const clients = getClients();
+  const idx = clients.findIndex(c => c.id === cid);
+  if (idx === -1) return;
+  clients[idx] = {
+    ...clients[idx],
+    shopName: $('msSetShopName').value.trim() || clients[idx].shopName,
+    address: $('msSetAddress').value.trim(),
+    currency: $('msSetCurrency').value.trim() || 'BHD',
+    timeSlots: $('msSetTimeSlots').value.trim(),
+    password: $('msSetOwnerPass').value,
+    staffPassword: $('msSetStaffPass').value,
+    expiry: $('msSetExpiry').value || clients[idx].expiry
+  };
+  setClients(clients);
+  selectedMasterClient = clients[idx];
+  toast('✅ ' + t('saved'), 'success');
+  renderMasterContent();
+};
+
+window.renderBillsFiltered = cid => {
+  const q = ($('masterBillSearch')?.value || '').toLowerCase();
+  const bills = getClientBills(cid).filter(b =>
+    b.billNumber.toString().includes(q) ||
+    (b.customer?.name || '').toLowerCase().includes(q) ||
+    (b.customer?.phone || '').includes(q));
+  const cur = getCurrency(selectedMasterClient);
+  $('masterBillList').innerHTML = bills.map(b => `
+    <div class="list-row" onclick="viewMasterBill('${cid}', ${b.billNumber})">
+      <div class="list-row-info">
+        <div class="list-row-title">#${b.billNumber} — ${escapeHtml(b.customer?.name || 'Walk-in')}</div>
+        <div class="list-row-meta">
+          <span>${new Date(b.date).toLocaleDateString()}</span>
+          <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+        </div>
+      </div>
+      <strong>${b.total.toFixed(3)} ${cur}</strong>
+    </div>`).join('') || `<div class="empty-state">${t('no_bills')}</div>`;
+};
+
+/* ============ MASTER: CLIENT EDITOR ============ */
+window.openClientEditor = id => {
+  editingClientId = id || null;
+  const c = id ? getClients().find(x => x.id === id) : null;
+  $('clientEditorTitle').textContent = id ? t('edit') : t('new_client');
+  $('ceShopName').value = c?.shopName || '';
+  $('ceAddress').value = c?.address || '';
+  $('cePassword').value = c?.password || '';
+  $('ceStaffPassword').value = c?.staffPassword || '';
+  $('ceExpiry').value = c?.expiry || new Date(Date.now() + 365*24*60*60*1000).toISOString().slice(0,10);
+  $('ceTimeSlots').value = c?.timeSlots || '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM';
+  $('ceCurrency').value = c?.currency || 'BHD';
+  $('ceLogoFile').value = '';
+  $('ceDeleteBtn').classList.toggle('hidden', !id);
+  $('clientEditorModal').classList.add('show');
+};
+window.saveClientEditor = () => {
+  const name = $('ceShopName').value.trim();
+  const pass = $('cePassword').value;
+  const expiry = $('ceExpiry').value;
+  if (!name || !pass || !expiry) return toast('Fill required fields', 'error');
+  const logoFile = $('ceLogoFile').files[0];
+  const cid = editingClientId || uid();
+  const finish = logo => {
+    const clients = getClients();
+    const idx = clients.findIndex(c => c.id === cid);
+    const data = {
+      id: cid, shopName: name,
+      address: $('ceAddress').value.trim(),
+      logo: logo || (idx > -1 ? clients[idx].logo : ''),
+      password: pass, staffPassword: $('ceStaffPassword').value,
+      expiry, timeSlots: $('ceTimeSlots').value.trim(),
+      currency: $('ceCurrency').value.trim() || 'BHD',
+      drivers: idx > -1 ? (clients[idx].drivers || []) : []
+    };
+    if (idx > -1) clients[idx] = data; else clients.push(data);
+    setClients(clients);
+    closeModal('clientEditorModal');
+    renderClientList();
+    if (selectedMasterClient?.id === cid) { selectedMasterClient = data; renderMasterContent(); }
+    toast('✅ ' + t('saved'), 'success');
+  };
+  if (logoFile) {
+    const r = new FileReader();
+    r.onload = e => finish(e.target.result);
+    r.readAsDataURL(logoFile);
+  } else finish(null);
+};
+window.deleteClient = () => {
+  if (!editingClientId) return;
+  if (!confirm('Delete this client and ALL their data?')) return;
+  setClients(getClients().filter(c => c.id !== editingClientId));
+  if (selectedMasterClient?.id === editingClientId) selectedMasterClient = null;
+  closeModal('clientEditorModal');
+  renderClientList();
+  renderMasterContent();
+  toast('🗑 Deleted', 'success');
+};
+
+/* ============ MASTER: ITEM EDITOR ============ */
+window.openItemEditor = (cid, itemId) => {
+  editingClientId = cid;
+  editingItemId = itemId || null;
+  const item = itemId ? getClientItems(cid).find(i => i.id === itemId) : null;
+  $('itemEditorTitle').textContent = itemId ? t('edit') : t('add_item');
+  $('ieName').value = item?.name || '';
+  $('ieCategory').value = item?.category || '';
+  $('ieImageUrl').value = item?.image || '';
+  $('ieImageFile').value = '';
+  $('iePriceWash').value = item?.prices?.washIron ?? '';
+  $('iePriceDry').value = item?.prices?.dryClean ?? '';
+  $('iePriceIron').value = item?.prices?.iron ?? '';
+  $('ieDeleteBtn').classList.toggle('hidden', !itemId);
+  $('itemEditorModal').classList.add('show');
+};
+window.saveItemEditor = () => {
+  const name = $('ieName').value.trim();
+  if (!name) return toast('Name required', 'error');
+  const wash = parseFloat($('iePriceWash').value);
+  const dry = parseFloat($('iePriceDry').value);
+  const iron = parseFloat($('iePriceIron').value);
+  if ([wash,dry,iron].some(isNaN)) return toast('Enter all prices', 'error');
+  const cat = $('ieCategory').value.trim() || 'Other';
+  const imageUrl = $('ieImageUrl').value.trim();
+  const file = $('ieImageFile').files[0];
+  const cid = editingClientId;
+  const finish = image => {
+    const items = getClientItems(cid);
+    const prices = { washIron: wash, dryClean: dry, iron };
+    if (editingItemId) {
+      const idx = items.findIndex(i => i.id === editingItemId);
+      if (idx > -1) items[idx] = { ...items[idx], name, category: cat, image, prices };
+    } else {
+      items.push({ id: uid(), name, category: cat, image, prices });
+    }
+    setClientItems(cid, items);
+    closeModal('itemEditorModal');
+    if (currentMode === 'master') renderMasterTab();
+    if (currentMode === 'client') { renderPosTabs(); renderPosItems(); }
+    toast('✅ ' + t('saved'), 'success');
+  };
+  if (file) {
+    const r = new FileReader();
+    r.onload = e => finish(e.target.result);
+    r.readAsDataURL(file);
+  } else finish(imageUrl);
+};
+window.deleteItemFromCatalogue = (cid, itemId) => {
+  if (!confirm('Delete this item?')) return;
+  setClientItems(cid, getClientItems(cid).filter(i => i.id !== itemId));
+  renderMasterTab();
+  toast('🗑 ' + t('deleted'), 'success');
+};
+window.deleteItem = () => {
+  if (!editingItemId) return;
+  deleteItemFromCatalogue(editingClientId, editingItemId);
+  closeModal('itemEditorModal');
+};
+
+/* ============ MASTER: DRIVER MANAGER ============ */
+window.openDriverManager = cid => {
+  editingClientId = cid;
+  const c = getClients().find(x => x.id === cid);
+  $('driversClientName').textContent = c.shopName;
+  renderDriverRows(c.drivers || []);
+  $('driverManagerModal').classList.add('show');
+};
+function renderDriverRows(drivers) {
+  $('driversEditorList').innerHTML = drivers.map(d => `
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center" data-driver-row>
+      <input type="text" class="driver-name-field" value="${escapeHtml(d.name)}" placeholder="Name" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px">
+      <input type="text" class="driver-pass-field" value="${escapeHtml(d.password)}" placeholder="Password" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px">
+      <button class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">✕</button>
+    </div>`).join('') || '<p style="color:var(--text-muted);padding:8px 0;font-size:.9rem">No drivers yet.</p>';
+}
+window.addDriverRow = () => {
+  const container = $('driversEditorList');
+  if (container.querySelector('p')) container.innerHTML = '';
+  const div = document.createElement('div');
+  div.style = 'display:flex;gap:8px;margin-bottom:8px;align-items:center';
+  div.setAttribute('data-driver-row','');
+  div.innerHTML = `<input class="driver-name-field" placeholder="Name" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px">
+    <input class="driver-pass-field" placeholder="Password" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px">
+    <button class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(div);
+};
+window.saveDrivers = () => {
+  const clients = getClients();
+  const idx = clients.findIndex(c => c.id === editingClientId);
+  if (idx === -1) return;
+  const drivers = [];
+  $('driversEditorList').querySelectorAll('[data-driver-row]').forEach(r => {
+    const name = r.querySelector('.driver-name-field').value.trim();
+    const pass = r.querySelector('.driver-pass-field').value;
+    if (name && pass) drivers.push({ name, password: pass });
+  });
+  clients[idx].drivers = drivers;
+  setClients(clients);
+  if (selectedMasterClient?.id === editingClientId) selectedMasterClient = clients[idx];
+  closeModal('driverManagerModal');
+  toast('✅ ' + t('saved'), 'success');
+  if (currentMode === 'master') renderMasterTab();
+};
+
+/* ============ MASTER: BILL VIEWER ============ */
+window.viewMasterBill = (cid, billNo) => {
+  const bill = getClientBills(cid).find(b => b.billNumber === billNo);
+  if (!bill) return;
+  const c = getClients().find(x => x.id === cid);
+  const cur = getCurrency(c);
+  const itemsHtml = bill.items.map(i =>
+    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border)">
+      <span>${escapeHtml(i.name)} (${i.service}) × ${i.qty}</span>
+      <strong>${(i.price * i.qty).toFixed(3)} ${cur}</strong>
+    </div>`).join('');
+  $('billViewerContent').innerHTML = `
+    <div style="text-align:center;margin-bottom:16px">
+      <h2>${escapeHtml(c.shopName)}</h2>
+      <p style="color:var(--text-muted);font-size:.85rem">Bill #${bill.billNumber} · ${new Date(bill.date).toLocaleString()}</p>
+    </div>
+    ${bill.customer?.name ? `<p style="margin-bottom:4px"><strong>${t('customer')}:</strong> ${escapeHtml(bill.customer.name)}</p>` : ''}
+    ${bill.customer?.phone ? `<p style="margin-bottom:4px"><strong>${t('phone')}:</strong> ${escapeHtml(bill.customer.phone)}</p>` : ''}
+    ${bill.delivery ? `<p style="margin-bottom:4px">🚚 ${escapeHtml(bill.driverName||'')} · ${escapeHtml(bill.deliveryTimeSlot||'')}</p>` : ''}
+    <hr>
+    ${itemsHtml}
+    <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:.9rem;color:var(--text-muted)">
+      <span>${t('subtotal')}</span><span>${bill.subtotal.toFixed(3)} ${cur}</span>
+    </div>
+    ${bill.discountPercent ? `<div style="display:flex;justify-content:space-between;color:var(--success);font-size:.9rem"><span>${t('discount')} ${bill.discountPercent}%</span><span>-${bill.discountAmount.toFixed(3)} ${cur}</span></div>` : ''}
+    <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:2px solid var(--border);font-weight:800;font-size:1.1rem">
+      <span>${t('total')}</span><span>${bill.total.toFixed(3)} ${cur}</span>
+    </div>
+    <div style="margin-top:8px">
+      <span class="pill ${bill.paymentStatus==='Paid'?'pill-success':'pill-warn'}">${bill.paymentStatus === 'Paid' ? `💳 ${bill.paymentMethod}` : t('pending')}</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('billViewerModal')">${t('close')}</button>
+    </div>`;
+  $('billViewerModal').classList.add('show');
+};
+
+/* ============ MASTER: SETTINGS ============ */
+window.openMasterSettings = () => {
+  $('msWhatsapp').value = getOwnerWa();
+  $('msNewPassword').value = '';
+  const cfg = getFbConfig();
+  $('msFirebaseConfig').value = cfg ? JSON.stringify(cfg, null, 2) : '';
+  $('masterSettingsModal').classList.add('show');
+};
+window.saveMasterSettings = () => {
+  const wa = $('msWhatsapp').value.trim();
+  const np = $('msNewPassword').value.trim();
+  if (wa) setOwnerWa(wa);
+  if (np) { setMasterPass(np); toast('✅ Password updated', 'success'); }
+  else toast('✅ ' + t('saved'), 'success');
+  closeModal('masterSettingsModal');
+};
+window.openBackupModal = () => $('backupModal').classList.add('show');
+window.logoutMaster = () => {
+  currentMode = null; selectedMasterClient = null;
+  $('masterApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+};
+
+/* ============ CLIENT SESSION ============ */
+async function startClientSession(client) {
+  currentMode = 'client';
+  currentClient = client;
+  $('authScreen').classList.add('hidden');
+  $('masterApp').classList.remove('active');
+  $('clientApp').classList.add('active');
+  $('driverApp').classList.remove('active');
+  $('shopNameText').textContent = client.shopName;
+  $('staffBadge').classList.toggle('hidden', !isStaff);
+  if (client.logo) {
+    $('shopLogo').src = client.logo;
+    $('shopLogo').style.display = 'block';
+    $('shopNameText').style.display = 'none';
+  } else {
+    $('shopLogo').style.display = 'none';
+    $('shopNameText').style.display = 'block';
+  }
+  quickAdd = getClientQuickAdd(client.id);
+  updateQuickAddSwitch();
+  if (firebaseReady) await pullFromCloud(client.id);
+  initPos();
+}
+
+function updateQuickAddSwitch() {
+  const sw = $('quickAddSwitch');
+  const knob = sw.firstElementChild;
+  sw.style.background = quickAdd ? 'var(--primary)' : 'var(--border-2)';
+  knob.style.left = quickAdd ? '20px' : '2px';
+}
+
+/* ============ POS ============ */
+const SERVICES = [
+  { label: 'Wash & Iron', key: 'washIron' },
+  { label: 'Dry Clean', key: 'dryClean' },
+  { label: 'Iron Only', key: 'iron' }
+];
+
+const DEFAULT_ITEMS = [
+  { name:'Abaya', category:'Traditional', washIron:2.000, dryClean:2.500, iron:1.000 },
+  { name:'Silk Abaya', category:'Traditional', washIron:3.000, dryClean:3.500, iron:1.500 },
+  { name:'Daraa', category:'Traditional', washIron:1.800, dryClean:2.200, iron:0.900 },
+  { name:'Hijab', category:'Traditional', washIron:0.600, dryClean:0.800, iron:0.300 },
+  { name:'Thawb', category:'Summer', washIron:2.000, dryClean:2.500, iron:1.000 },
+  { name:'Bed Sheet', category:'Home', washIron:1.000, dryClean:1.500, iron:0.500 },
+  { name:'Pillow', category:'Home', washIron:0.800, dryClean:1.200, iron:0.400 },
+  { name:'Jeans', category:'Western', washIron:1.800, dryClean:2.200, iron:1.000 },
+  { name:'Shirt', category:'Western', washIron:1.500, dryClean:2.000, iron:0.800 },
+  { name:'Suit', category:'Western', washIron:4.000, dryClean:5.000, iron:2.000 }
+];
+
+let activePosCategory = 'all';
+
+function initPos() {
+  const cid = currentClient.id;
+  let items = getClientItems(cid);
+  if (!items.length) {
+    items = DEFAULT_ITEMS.map(d => ({
+      id: uid(), name: d.name, category: d.category,
+      image: '', prices: { washIron: d.washIron, dryClean: d.dryClean, iron: d.iron }
+    }));
+    setClientItems(cid, items);
+  }
+  renderPosTabs();
+  renderPosItems();
+  renderPosCart();
+}
+
+function renderPosTabs() {
+  const cid = currentClient.id;
+  const items = getClientItems(cid);
+  const cats = [...new Set(items.map(i => i.category || 'Other'))].filter(Boolean);
+  $('posCatTabs').innerHTML =
+    `<button class="cat-pill ${activePosCategory==='all'?'active':''}" onclick="setPosCategory('all')">All</button>` +
+    cats.map(c => `<button class="cat-pill ${activePosCategory===c?'active':''}" onclick="setPosCategory('${c.replace(/'/g,"\\'")}')">${escapeHtml(c)}</button>`).join('');
+}
+window.setPosCategory = cat => { activePosCategory = cat; renderPosTabs(); renderPosItems(); };
+
+function renderPosItems() {
+  const cid = currentClient.id;
+  const cur = getCurrency(currentClient);
+  const search = ($('posSearchInput')?.value || '').toLowerCase().trim();
+  let items = getClientItems(cid);
+  if (activePosCategory !== 'all') items = items.filter(i => i.category === activePosCategory);
+  if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
+  $('posItemsGrid').innerHTML = items.map(i => `
+    <div class="item-tile" onclick="handleItemClick('${i.id}')">
+      <img src="${i.image || `https://placehold.co/300x200/0b1f3a/white?text=${encodeURIComponent(i.name)}`}" alt="" loading="lazy">
+      <div class="item-body">
+        <div class="item-title">${escapeHtml(i.name)}</div>
+        <div class="item-price">${i.prices.washIron.toFixed(3)} ${cur}</div>
+      </div>
+      ${isClientAdmin ? `<button class="item-edit" onclick="event.stopPropagation();openItemEditor('${cid}','${i.id}')">✏️</button>` : ''}
+    </div>`).join('') || `<div class="empty-state" style="grid-column:1/-1">No items found.</div>`;
+}
+window.filterPosItems = () => renderPosItems();
+
+window.handleItemClick = itemId => {
+  if (quickAdd) addToCartDirect(itemId);
+  else openServicePicker(itemId);
+};
+function addToCartDirect(itemId) {
+  const item = getClientItems(currentClient.id).find(i => i.id === itemId);
+  if (!item) return;
+  const svc = SERVICES[0];
+  const exist = cart.find(i => i.id === itemId && i.service === svc.label);
+  if (exist) exist.qty++;
+  else cart.push({ id: item.id, name: item.name, service: svc.label, price: item.prices[svc.key], qty: 1 });
+  renderPosCart();
+}
+window.openServicePicker = itemId => {
+  const item = getClientItems(currentClient.id).find(i => i.id === itemId);
+  if (!item) return;
+  pendingItemId = itemId;
+  $('serviceItemName').textContent = item.name;
+  $('serviceOptions').innerHTML = SERVICES.map((s, i) => `
+    <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s">
+      <input type="radio" name="svcType" value="${s.label}" data-price="${item.prices[s.key]}" ${i===0?'checked':''} onchange="updateServicePriceField()">
+      <span style="flex:1;font-weight:600">${s.label}</span>
+      <strong style="color:var(--primary)">${item.prices[s.key].toFixed(3)}</strong>
+    </label>`).join('');
+  $('servicePrice').value = item.prices.washIron.toFixed(3);
+  $('servicePickerModal').classList.add('show');
+};
+window.updateServicePriceField = () => {
+  const checked = document.querySelector('input[name="svcType"]:checked');
+  if (checked) $('servicePrice').value = parseFloat(checked.dataset.price).toFixed(3);
+};
+window.confirmAddToCart = () => {
+  const svc = document.querySelector('input[name="svcType"]:checked');
+  if (!svc) return toast('Select service', 'error');
+  const price = parseFloat($('servicePrice').value);
+  if (isNaN(price)) return toast('Invalid price', 'error');
+  const item = getClientItems(currentClient.id).find(i => i.id === pendingItemId);
+  if (!item) return;
+  const exist = cart.find(i => i.id === pendingItemId && i.service === svc.value);
+  if (exist) exist.qty++;
+  else cart.push({ id: item.id, name: item.name, service: svc.value, price, qty: 1 });
+  renderPosCart();
+  closeModal('servicePickerModal');
+};
+
+function getDiscountState() {
+  const applied = $('applyDiscount')?.checked || $('applyDiscountM')?.checked;
+  const pct = parseFloat($('discountPercent')?.value || $('discountPercentM')?.value || 0) || 0;
+  return { applied, pct };
+}
+
+window.renderPosCart = () => {
+  const cur = getCurrency(currentClient);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const { applied, pct } = getDiscountState();
+  const discountAmount = applied ? subtotal * pct / 100 : 0;
+  const total = subtotal - discountAmount;
+
+  const html = cart.length ? cart.map(i => `
+    <div class="cart-row">
+      <div class="cart-info">
+        <div class="cart-name">${escapeHtml(i.name)}</div>
+        <div class="cart-svc">${i.service}</div>
+      </div>
+      <div class="cart-qty">
+        <button class="qty-btn" onclick="changeQty('${i.id}','${i.service}',-1)">−</button>
+        <span style="min-width:20px;text-align:center;font-weight:600">${i.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${i.id}','${i.service}',1)">+</button>
+      </div>
+      <div class="cart-price">${(i.price * i.qty).toFixed(3)}</div>
+    </div>`).join('') : `<div class="empty-state" style="padding:20px">Cart is empty</div>`;
+
+  $('posCartList').innerHTML = html;
+  $('posCartListM').innerHTML = html;
+  ['posSubtotal','posSubtotalM'].forEach(id => { const e = $(id); if (e) e.textContent = subtotal.toFixed(3)+' '+cur; });
+  ['posDiscount','posDiscountM'].forEach(id => { const e = $(id); if (e) e.textContent = '-'+discountAmount.toFixed(3)+' '+cur; });
+  ['posDiscountLine','posDiscountLineM'].forEach(id => { const e = $(id); if (e) e.classList.toggle('hidden', !applied); });
+  ['posTotal','posTotalM'].forEach(id => { const e = $(id); if (e) e.textContent = total.toFixed(3)+' '+cur; });
+  $('posCartCount').textContent = cart.reduce((s, i) => s + i.qty, 0);
+  const badge = $('mobileCartBadge');
+  if (badge) { badge.textContent = cart.reduce((s, i) => s + i.qty, 0); badge.style.display = cart.length ? 'flex' : 'none'; }
+};
+
+window.changeQty = (id, svc, delta) => {
+  const entry = cart.find(i => i.id === id && i.service === svc);
+  if (!entry) return;
+  entry.qty += delta;
+  if (entry.qty <= 0) cart = cart.filter(i => !(i.id === id && i.service === svc));
+  renderPosCart();
+};
+window.clearPosCart = () => { cart = []; renderPosCart(); };
+window.openMobileCart = () => { $('mobileCartPanel').classList.add('open'); $('posOverlay').classList.add('show'); };
+window.closeMobileCart = () => { $('mobileCartPanel').classList.remove('open'); $('posOverlay').classList.remove('show'); };
+
+window.toggleQuickAdd = () => {
+  quickAdd = !quickAdd;
+  setClientQuickAdd(currentClient.id, quickAdd);
+  updateQuickAddSwitch();
+};
+window.toggleDelivery = where => {
+  const m = where === 'mobile';
+  const checked = m ? $('markDeliveryM').checked : $('markDelivery').checked;
+  (m ? $('deliveryFieldsM') : $('deliveryFields')).classList.toggle('hidden', !checked);
+  if (checked) populateDeliveryFields(m);
+};
+function populateDeliveryFields(mobile) {
+  const c = getClients().find(x => x.id === currentClient.id);
+  const drivers = c?.drivers || [];
+  const slots = (c?.timeSlots || '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM').split(',').map(s => s.trim()).filter(Boolean);
+  const dSel = mobile ? $('driverSelectM') : $('driverSelect');
+  const sSel = mobile ? $('timeSlotSelectM') : $('timeSlotSelect');
+  dSel.innerHTML = drivers.length ? drivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)}</option>`).join('') : '<option value="">No drivers</option>';
+  sSel.innerHTML = slots.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+}
+window.toggleDiscount = where => {
+  const m = where === 'mobile';
+  const checked = m ? $('applyDiscountM').checked : $('applyDiscount').checked;
+  (m ? $('discountBoxM') : $('discountBox')).classList.toggle('hidden', !checked);
+  renderPosCart();
+};
+
+/* ============ BILL GENERATION ============ */
+window.generateBill = () => {
+  if (!cart.length) return toast('Cart is empty', 'error');
+  const cid = currentClient.id;
+  const cur = getCurrency(currentClient);
+  const name = ($('custName').value || $('custNameM').value).trim() || 'Walk-in Customer';
+  const phone = ($('custPhone').value || $('custPhoneM').value).trim();
+  const address = ($('custAddress').value || $('custAddressM').value).trim();
+  const delivery = $('markDelivery').checked || $('markDeliveryM').checked;
+  const driverName = delivery ? ($('driverSelect').value || $('driverSelectM').value) : '';
+  const slot = delivery ? ($('timeSlotSelect').value || $('timeSlotSelectM').value) : '';
+  const { applied, pct } = getDiscountState();
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const discountAmount = applied ? subtotal * pct / 100 : 0;
+  const total = subtotal - discountAmount;
+
+  const counter = getClientCounter(cid) + 1;
+  setClientCounter(cid, counter);
+
+  const bill = {
+    billNumber: counter,
+    items: cart.map(i => ({ name: i.name, service: i.service, price: i.price, qty: i.qty })),
+    subtotal, discountPercent: applied ? pct : null, discountAmount, total,
+    date: new Date().toISOString(),
+    customer: { name, phone, address },
+    paymentStatus: 'Pending', paymentMethod: '', paymentDate: null,
+    delivery, driverName, deliveryTimeSlot: slot,
+    status: delivery ? 'Pending' : 'Picked Up',
+    ready: '24 hours', currency: cur
+  };
+  const bills = getClientBills(cid);
+  bills.unshift(bill);
+  setClientBills(cid, bills);
+
+  showBillViewer(bill);
+
+  cart = [];
+  renderPosCart();
+  ['custName','custPhone','custAddress','custNameM','custPhoneM','custAddressM'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+  ['markDelivery','markDeliveryM'].forEach(id => { const e = $(id); if (e) e.checked = false; });
+  ['applyDiscount','applyDiscountM'].forEach(id => { const e = $(id); if (e) e.checked = false; });
+  ['deliveryFields','deliveryFieldsM'].forEach(id => { const e = $(id); if (e) e.classList.add('hidden'); });
+  ['discountBox','discountBoxM'].forEach(id => { const e = $(id); if (e) e.classList.add('hidden'); });
+  if (window.innerWidth < 901) closeMobileCart();
+  toast('🧾 Bill #' + bill.billNumber + ' created!', 'success');
+};
+
+function showBillViewer(bill) {
+  const cur = bill.currency || getCurrency(currentClient);
+  const itemsHtml = bill.items.map(i =>
+    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border)">
+      <span>${escapeHtml(i.name)} (${i.service}) × ${i.qty}</span>
+      <strong>${(i.price*i.qty).toFixed(3)} ${cur}</strong>
+    </div>`).join('');
+  const discountLine = bill.discountPercent
+    ? `<div style="display:flex;justify-content:space-between;color:var(--success);font-size:.9rem">
+        <span>${t('discount')} ${bill.discountPercent}%</span><span>-${bill.discountAmount.toFixed(3)} ${cur}</span></div>` : '';
+  const paymentBtn = bill.paymentStatus === 'Pending'
+    ? `<button class="btn btn-outline" style="flex:1" onclick="openPaymentModal(${bill.billNumber})">💵 ${t('mark_paid')}</button>` : '';
+  $('billViewerContent').innerHTML = `
+    <div class="printable">
+      <div style="text-align:center">
+        ${currentClient.logo ? `<img src="${currentClient.logo}" style="max-height:70px;margin:0 auto 8px;display:block">` : ''}
+        <h2>${escapeHtml(currentClient.shopName)}</h2>
+        <p style="color:var(--text-muted);font-size:.85rem">${escapeHtml(currentClient.address || 'Bahrain')}</p>
+        <p style="color:var(--text-muted);font-size:.85rem">📞 ${escapeHtml(getOwnerWa())}</p>
+        <hr style="margin:12px 0">
+        <h3>Bill #${bill.billNumber}</h3>
+        <p style="font-size:.85rem;color:var(--text-muted)">${new Date(bill.date).toLocaleString()}</p>
+        ${bill.customer?.name ? `<p style="font-size:.85rem">${escapeHtml(bill.customer.name)} ${bill.customer.phone ? '· ' + escapeHtml(bill.customer.phone) : ''}</p>` : ''}
+        ${bill.delivery ? `<p style="font-size:.85rem">🚚 ${escapeHtml(bill.driverName)} · ${escapeHtml(bill.deliveryTimeSlot)}</p>` : ''}
+      </div>
+      <hr style="margin:12px 0">
+      ${itemsHtml}
+      <div style="display:flex;justify-content:space-between;margin-top:10px;color:var(--text-muted);font-size:.9rem">
+        <span>${t('subtotal')}</span><span>${bill.subtotal.toFixed(3)} ${cur}</span>
+      </div>
+      ${discountLine}
+      <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:2px solid var(--border);font-weight:800;font-size:1.05rem">
+        <span>${t('total')}</span><span>${bill.total.toFixed(3)} ${cur}</span>
+      </div>
+      ${bill.paymentStatus === 'Paid' ? `<p style="margin-top:8px;text-align:center;color:var(--success);font-weight:700">💳 ${bill.paymentMethod} · ${new Date(bill.paymentDate).toLocaleString()}</p>` : ''}
+      <p style="margin-top:12px;text-align:center;font-size:.85rem">🧼 Ready in ${bill.ready}</p>
+      <p style="margin-top:6px;text-align:center;font-weight:600">Thank you!</p>
+    </div>
+    <div class="modal-actions no-print" style="margin-top:20px">
+      <button class="btn btn-primary" onclick="window.print()" style="flex:1;min-width:100px">🖨️ Print</button>
+      <button class="btn btn-accent" onclick="downloadPDF()" style="flex:1;min-width:100px">📄 PDF</button>
+      <button class="btn btn-outline" onclick="shareWhatsApp(${bill.billNumber})" style="flex:1;min-width:100px">📲 WhatsApp</button>
+    </div>
+    <div class="modal-actions no-print">
+      ${paymentBtn}
+      <button class="btn btn-outline" onclick="closeModal('billViewerModal')" style="flex:1">${t('close')}</button>
+    </div>`;
+  $('billViewerModal').classList.add('show');
+}
+
+window.downloadPDF = () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
+  const cur = getCurrency(currentClient);
+  let y = 10;
+  doc.setFontSize(13); doc.setFont(undefined,'bold');
+  doc.text(currentClient.shopName, 40, y, { align: 'center' }); y += 6;
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text(currentClient.address || 'Bahrain', 40, y, { align: 'center' }); y += 4;
+  doc.text(getOwnerWa(), 40, y, { align: 'center' }); y += 6;
+  doc.line(5, y, 75, y); y += 4;
+  const bill = getClientBills(currentClient.id)[0];
+  if (!bill) return;
+  doc.setFontSize(9); doc.setFont(undefined,'bold');
+  doc.text(`Bill #${bill.billNumber}`, 5, y); y += 4;
+  doc.setFont(undefined,'normal'); doc.setFontSize(8);
+  doc.text(new Date(bill.date).toLocaleString(), 5, y); y += 4;
+  if (bill.customer?.name) { doc.text(bill.customer.name, 5, y); y += 3; }
+  doc.line(5, y, 75, y); y += 3;
+  bill.items.forEach(i => {
+    doc.text(`${i.name} (${i.service})`, 5, y);
+    doc.text(`x${i.qty}`, 50, y);
+    doc.text((i.price*i.qty).toFixed(3), 75, y, { align: 'right' }); y += 4;
+    if (y > 180) { doc.addPage([80,200]); y = 10; }
+  });
+  doc.line(5, y, 75, y); y += 3;
+  doc.text('Subtotal:', 5, y); doc.text(bill.subtotal.toFixed(3)+' '+cur, 75, y, { align: 'right' }); y += 4;
+  if (bill.discountPercent) {
+    doc.text(`Discount ${bill.discountPercent}%:`, 5, y);
+    doc.text('-'+bill.discountAmount.toFixed(3)+' '+cur, 75, y, { align: 'right' }); y += 4;
+  }
+  doc.setFont(undefined,'bold'); doc.setFontSize(10);
+  doc.text('TOTAL:', 5, y); doc.text(bill.total.toFixed(3)+' '+cur, 75, y, { align: 'right' }); y += 6;
+  doc.setFont(undefined,'normal'); doc.setFontSize(7);
+  doc.text('Thank you!', 40, y, { align: 'center' });
+  doc.save(`Bill-${bill.billNumber}.pdf`);
+  toast('📄 PDF downloaded', 'success');
+};
+
+window.openPaymentModal = billNo => {
+  pendingPaymentBillNumber = billNo;
+  $('paymentBillNo').textContent = billNo;
+  $('paymentModal').classList.add('show');
+};
+window.confirmPayment = () => {
+  const cid = currentClient.id;
+  const method = $('paymentMethod').value;
+  const bills = getClientBills(cid);
+  const idx = bills.findIndex(b => b.billNumber === pendingPaymentBillNumber);
+  if (idx > -1) {
+    bills[idx].paymentStatus = 'Paid';
+    bills[idx].paymentMethod = method;
+    bills[idx].paymentDate = new Date().toISOString();
+    if (!bills[idx].delivery) bills[idx].status = 'Picked Up';
+    setClientBills(cid, bills);
+    showBillViewer(bills[idx]);
+    toast('💳 Paid', 'success');
+  }
+  closeModal('paymentModal');
+};
+
+window.shareWhatsApp = billNo => {
+  const bill = getClientBills(currentClient.id).find(b => b.billNumber === billNo);
+  if (!bill) return;
+  const cur = getCurrency(currentClient);
+  const lines = [
+    `🧺 *${currentClient.shopName}*`,
+    `📍 ${currentClient.address || ''}`,
+    `📞 ${getOwnerWa()}`,
+    '',
+    bill.customer?.name ? `*Customer:* ${bill.customer.name}` : '',
+    bill.customer?.phone ? `📞 ${bill.customer.phone}` : '',
+    `*Bill #${bill.billNumber}*`,
+    '',
+    ...bill.items.map(i => `▪ ${i.name} (${i.service}) × ${i.qty} = ${(i.price*i.qty).toFixed(3)} ${cur}`),
+    '',
+    `Subtotal: ${bill.subtotal.toFixed(3)} ${cur}`,
+    bill.discountPercent ? `Discount ${bill.discountPercent}%: -${bill.discountAmount.toFixed(3)} ${cur}` : '',
+    `*Total: ${bill.total.toFixed(3)} ${cur}*`,
+    bill.paymentStatus === 'Paid' ? `💳 Paid: ${bill.paymentMethod}` : `💳 Payment pending`,
+    bill.delivery ? `🚚 ${bill.driverName} · ${bill.deliveryTimeSlot}` : '',
+    '',
+    `*Thank you!*`
+  ].filter(Boolean).join('\n');
+  window.open(`https://wa.me/?text=${encodeURIComponent(lines)}`, '_blank');
+};
+
+/* ============ CLIENT ADMIN MENU ============ */
+$('adminBtn').onclick = () => {
+  if (isStaff) return toast('Staff cannot access admin', 'error');
+  if (!isClientAdmin) {
+    const pass = prompt('Enter owner password:');
+    if (pass === currentClient.password) {
+      isClientAdmin = true;
+      isStaff = false;
+      $('staffBadge').classList.add('hidden');
+      toast('🔓 Admin mode enabled', 'success');
+      renderPosItems();
+    } else if (pass) toast(t('wrong_password'), 'error');
+    return;
+  }
+  showAdminMenu();
+};
+
+function showAdminMenu() {
+  $('billViewerContent').innerHTML = `
+    <h2 style="margin-bottom:16px">⚙️ Admin Menu</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-outline" onclick="closeModal('billViewerModal')" style="justify-content:flex-start">🧾 New Order</button>
+      <button class="btn btn-outline" onclick="closeModal('billViewerModal');openItemEditor('${currentClient.id}')" style="justify-content:flex-start">➕ Add Item</button>
+      <button class="btn btn-outline" onclick="openClientSettings()" style="justify-content:flex-start">⚙️ Shop Settings</button>
+      <button class="btn btn-outline" onclick="logoutClient()" style="justify-content:flex-start;color:var(--danger)">🔒 Logout</button>
+    </div>`;
+  $('billViewerModal').classList.add('show');
+}
+
+window.openClientSettings = () => {
+  const c = currentClient;
+  $('billViewerContent').innerHTML = `
+    <h2 style="margin-bottom:16px">Shop Settings</h2>
+    <div class="field"><label>${t('shop_name')}</label><input id="csShopName" value="${escapeHtml(c.shopName)}"></div>
+    <div class="field"><label>${t('address')}</label><input id="csAddress" value="${escapeHtml(c.address || '')}"></div>
+    <div class="field"><label>${t('logo')}</label><input type="file" id="csLogoFile" accept="image/*"></div>
+    <div class="field"><label>${t('time_slots')}</label><input id="csTimeSlots" value="${escapeHtml(c.timeSlots || '')}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveClientSettings()">${t('save')}</button>
+      <button class="btn btn-outline" onclick="closeModal('billViewerModal')">${t('cancel')}</button>
+    </div>`;
+  $('billViewerModal').classList.add('show');
+};
+window.saveClientSettings = () => {
+  const clients = getClients();
+  const idx = clients.findIndex(x => x.id === currentClient.id);
+  if (idx === -1) return;
+  clients[idx].shopName = $('csShopName').value.trim() || clients[idx].shopName;
+  clients[idx].address = $('csAddress').value.trim();
+  clients[idx].timeSlots = $('csTimeSlots').value.trim();
+  const logoFile = $('csLogoFile').files[0];
+  const finish = logo => {
+    if (logo) clients[idx].logo = logo;
+    setClients(clients);
+    currentClient = clients[idx];
+    $('shopNameText').textContent = currentClient.shopName;
+    if (currentClient.logo) { $('shopLogo').src = currentClient.logo; $('shopLogo').style.display='block'; $('shopNameText').style.display='none'; }
+    closeModal('billViewerModal');
+    toast('✅ ' + t('saved'), 'success');
+  };
+  if (logoFile) { const r = new FileReader(); r.onload = e => finish(e.target.result); r.readAsDataURL(logoFile); }
+  else finish(null);
+};
+
+window.logoutClient = () => {
+  currentMode = null; currentClient = null; isClientAdmin = false; isStaff = false; cart = [];
+  closeModal('billViewerModal');
+  $('clientApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+  ['clientShopId','clientPass'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+};
+
+/* ============ DRIVER ============ */
+function loadDriverOrders() {
+  const cid = currentDriver.client.id;
+  const bills = getClientBills(cid).filter(b => b.driverName === currentDriver.name);
+  const pending = bills.filter(b => b.status === 'Pending');
+  const active = bills.filter(b => b.status === 'Picked Up' || b.status === 'Out for Delivery');
+  $('driverPickupsList').innerHTML = pending.map(b => driverCard(b)).join('') || '<div class="empty-state">No pending pickups.</div>';
+  $('driverDeliveriesList').innerHTML = active.map(b => driverCard(b)).join('') || '<div class="empty-state">No deliveries in progress.</div>';
+}
+function driverCard(bill) {
+  const cur = getCurrency(currentDriver.client);
+  return `<div class="list-card" style="padding:16px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong>#${bill.billNumber}</strong>
+      <span class="pill pill-warn">${bill.status}</span>
+    </div>
+    <p style="font-weight:600">${escapeHtml(bill.customer.name)}</p>
+    <p style="color:var(--text-muted);font-size:.85rem">📞 ${escapeHtml(bill.customer.phone || '')}</p>
+    <p style="color:var(--text-muted);font-size:.85rem">📍 ${escapeHtml(bill.customer.address || 'No address')}</p>
+    <p style="color:var(--text-muted);font-size:.85rem">🕒 ${escapeHtml(bill.deliveryTimeSlot || '')}</p>
+    <p style="margin:8px 0"><strong>Total: ${bill.total.toFixed(3)} ${cur}</strong></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${bill.status === 'Pending' ? `<button class="btn btn-primary btn-sm" onclick="updateBillStatus(${bill.billNumber}, 'Picked Up')">✅ Picked Up</button>` : ''}
+      ${bill.status === 'Picked Up' ? `<button class="btn btn-primary btn-sm" onclick="updateBillStatus(${bill.billNumber}, 'Delivered')">📦 Delivered</button>` : ''}
+      ${bill.customer.address ? `<button class="btn btn-outline btn-sm" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bill.customer.address)}','_blank')">🗺️ Map</button>` : ''}
+    </div>
+  </div>`;
+}
+window.switchDriverTab = tab => {
+  $('driverPickupsList').classList.toggle('hidden', tab !== 'pickups');
+  $('driverDeliveriesList').classList.toggle('hidden', tab !== 'deliveries');
+  $('driverTabPickups').classList.toggle('active', tab === 'pickups');
+  $('driverTabDeliveries').classList.toggle('active', tab === 'deliveries');
+};
+window.updateBillStatus = (billNo, status) => {
+  const bills = getClientBills(currentDriver.client.id);
+  const idx = bills.findIndex(b => b.billNumber === billNo);
+  if (idx > -1) { bills[idx].status = status; setClientBills(currentDriver.client.id, bills); loadDriverOrders(); toast('✅ Updated', 'success'); }
+};
+window.driverLogout = () => {
+  currentMode = null; currentDriver = { client: null, name: null };
+  $('driverApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+};
+
+/* ============ SYNC DOM INPUTS (desktop/mobile) ============ */
+function syncInputs(a, b) {
+  const A = $(a), B = $(b); if (!A || !B) return;
+  A.addEventListener('input', () => { B.value = A.value; if (A.type === 'checkbox') B.checked = A.checked; });
+  B.addEventListener('input', () => { A.value = B.value; if (B.type === 'checkbox') A.checked = B.checked; });
+}
+syncInputs('custName','custNameM');
+syncInputs('custPhone','custPhoneM');
+syncInputs('custAddress','custAddressM');
+syncInputs('markDelivery','markDeliveryM');
+syncInputs('applyDiscount','applyDiscountM');
+syncInputs('discountPercent','discountPercentM');
+
+/* ============ INIT ============ */
+applyLanguage();
+initFirebase();
+
+// URL param shop ID
+const urlShop = new URLSearchParams(location.search).get('shop');
+if (urlShop) {
+  $('clientShopId').value = urlShop;
+  switchAuthTab('client');
+}
+})();
+</script>
+</body>
+</html>
