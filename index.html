@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Laundry Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a1a1a;font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;width:100%;padding:10px 12px;border:1.5px solid #d0d5dd;border-radius:8px;background:#fff;color:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#0b1f3a;box-shadow:0 0 0 3px rgba(11,31,58,.1)}
+h1,h2,h3{font-weight:700;letter-spacing:-.02em}
+
+.btn{padding:10px 18px;border-radius:8px;font-weight:600;font-size:.9rem;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn-primary{background:#0b1f3a;color:#fff}
+.btn-primary:hover{background:#153a63}
+.btn-danger{background:#ef4444;color:#fff}
+.btn-block{width:100%;display:block}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.83rem;font-weight:600;margin-bottom:6px}
+.text-muted{color:#64748b;font-size:.85rem}
+.empty{text-align:center;padding:40px 20px;color:#94a3b8;font-size:.9rem}
+
+/* LOGIN */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0b1f3a 0%,#1a3a5f 100%)}
+.login-card{background:#fff;border-radius:18px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.login-card h1{text-align:center;font-size:1.4rem;margin-bottom:4px}
+.login-card .subtitle{text-align:center;color:#64748b;font-size:.85rem;margin-bottom:22px}
+.tabs{display:flex;gap:4px;padding:4px;background:#f0f2f5;border-radius:10px;margin-bottom:20px}
+.tab{flex:1;padding:9px;border-radius:7px;font-weight:600;font-size:.85rem;color:#64748b;transition:all .15s}
+.tab.active{background:#fff;color:#0b1f3a;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.login-form{display:none}
+.login-form.active{display:block}
+.hint{text-align:center;margin-top:16px;font-size:.75rem;color:#94a3b8}
+
+/* SHELLS */
+.shell{display:none;min-height:100vh;flex-direction:column}
+.shell.active{display:flex}
+.topbar{background:#0b1f3a;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.topbar h2{font-size:1.05rem}
+.topbar .btn{background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;padding:7px 14px}
+.topbar .btn:hover{background:rgba(255,255,255,.25)}
+
+/* MASTER */
+.master-layout{display:grid;grid-template-columns:300px 1fr;flex:1;min-height:0;height:calc(100vh - 60px)}
+.sidebar{background:#fff;border-right:1px solid #e2e8f0;overflow-y:auto;padding:16px}
+.sidebar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sidebar-head h3{font-size:.95rem}
+.client-item{padding:11px 13px;border-radius:10px;background:#f8fafc;cursor:pointer;margin-bottom:6px;border:1.5px solid transparent;transition:all .15s}
+.client-item:hover{background:#fff;border-color:#cbd5e1}
+.client-item.active{background:#0b1f3a;color:#fff;border-color:#0b1f3a}
+.client-item.active .client-meta{color:rgba(255,255,255,.7)}
+.client-name{font-weight:700;font-size:.88rem;margin-bottom:2px}
+.client-meta{font-size:.72rem;color:#64748b}
+.main-content{overflow-y:auto;padding:24px;background:#f8fafc}
+
+.content-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.content-header h2{font-size:1.4rem}
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+.tab-btn{padding:10px 16px;background:none;border:none;border-bottom:2px solid transparent;color:#64748b;font-weight:600;font-size:.85rem;white-space:nowrap}
+.tab-btn.active{color:#0b1f3a;border-bottom-color:#f59e0b}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;padding:16px;border-radius:12px;border:1px solid #e2e8f0}
+.stat-label{font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.stat-value{font-size:1.6rem;font-weight:800;color:#0b1f3a}
+.stat-sub{font-size:.75rem;color:#64748b;margin-top:2px}
+
+.card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 18px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h3{font-size:.95rem}
+.list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #e2e8f0;cursor:pointer;transition:background .1s}
+.list-row:last-child{border-bottom:none}
+.list-row:hover{background:#f8fafc}
+.list-row-title{font-weight:600;font-size:.88rem;margin-bottom:2px}
+.list-row-meta{font-size:.75rem;color:#64748b}
+
+.items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:16px}
+.item-card{background:#f8fafc;border-radius:10px;padding:14px;border:1px solid #e2e8f0}
+.item-name{font-weight:700;font-size:.9rem;margin-bottom:2px}
+.item-cat{font-size:.75rem;color:#64748b;margin-bottom:8px}
+.item-prices{font-size:.78rem;color:#64748b;line-height:1.6;margin-bottom:10px}
+.item-prices strong{color:#0b1f3a}
+.item-actions{display:flex;gap:6px}
+.item-actions button{flex:1;padding:6px;border-radius:6px;font-size:.75rem;font-weight:600}
+.item-actions [data-edit-item]{background:#fff;border:1px solid #cbd5e1}
+
+/* CLIENT POS */
+.pos-layout{display:grid;grid-template-columns:1fr 360px;flex:1;min-height:0;height:calc(100vh - 60px)}
+.pos-main{overflow-y:auto;padding:20px;background:#f8fafc}
+.toolbar{margin-bottom:16px}
+.pos-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.pos-item{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;cursor:pointer;transition:all .15s}
+.pos-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#cbd5e1}
+.pos-item-name{font-weight:700;font-size:.9rem;margin-bottom:4px}
+.pos-item-cat{font-size:.72rem;color:#64748b;margin-bottom:8px}
+.pos-item-price{font-weight:700;color:#0b1f3a;font-size:.95rem}
+.cart-panel{background:#fff;border-left:1px solid #e2e8f0;overflow-y:auto;padding:16px;display:flex;flex-direction:column}
+.cart-panel h3{font-size:1rem;margin-bottom:12px}
+#cartList{flex:1;overflow-y:auto;min-height:100px;margin-bottom:12px}
+.cart-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f0f2f5;font-size:.85rem}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cart-item-service{font-size:.72rem;color:#64748b}
+.cart-item-qty{display:flex;align-items:center;gap:4px}
+.cart-item-qty button{width:24px;height:24px;border-radius:50%;border:1.5px solid #d0d5dd;background:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cart-item-qty button:hover{background:#0b1f3a;color:#fff;border-color:#0b1f3a}
+.cart-item-price{font-weight:700;font-size:.85rem;min-width:55px;text-align:right}
+#cartTotals{margin-bottom:12px;padding-top:10px;border-top:2px solid #e2e8f0}
+.total-line{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:5px;color:#64748b}
+.total-line.grand{font-size:1.05rem;font-weight:800;color:#0b1f3a;padding-top:6px;margin-top:6px;border-top:1px solid #e2e8f0}
+
+/* DRIVER */
+#driverBody{padding:20px;max-width:800px;margin:0 auto;width:100%;overflow-y:auto}
+.driver-card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;margin-bottom:12px}
+.driver-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;background:#fef3c7;color:#92400e}
+
+/* MODAL */
+#modal{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#modal.show{display:flex}
+.modal-content{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-content h2{font-size:1.15rem;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.modal-actions button{flex:1;min-width:100px}
+
+/* BILL */
+.bill-header{text-align:center;margin-bottom:12px}
+.bill-header h2{margin-bottom:2px}
+.bill-header p{font-size:.82rem;color:#64748b;margin:2px 0}
+.bill-header hr,.bill-divider{border:none;border-top:1px dashed #cbd5e1;margin:10px 0}
+.bill-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:.85rem}
+.bill-total{display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;border-top:2px solid #0b1f3a;font-size:1.05rem;font-weight:800}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#0b1f3a;color:#fff;padding:12px 22px;border-radius:10px;font-weight:600;font-size:.88rem;opacity:0;transition:all .3s;z-index:2000;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MOBILE */
+@media(max-width:800px){
+  .master-layout{grid-template-columns:1fr;height:auto}
+  .sidebar{max-height:40vh;border-right:none;border-bottom:1px solid #e2e8f0}
+  .main-content{overflow-y:visible}
+  .pos-layout{grid-template-columns:1fr;height:auto}
+  .pos-main{overflow-y:visible}
+  .cart-panel{border-left:none;border-top:1px solid #e2e8f0;max-height:none}
+  #cartList{max-height:250px}
+}
+
+/* PRINT */
+@media print{
+  body *{visibility:hidden}
+  #printableBill,#printableBill *{visibility:visible}
+  #printableBill{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff}
+  #modal{position:static!important;background:#fff!important;display:block!important;padding:0!important}
+  .modal-content{box-shadow:none!important;padding:0!important;max-width:none!important}
+  .no-print{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="screen-login">
+  <div class="login-card">
+    <h1>🧺 Laundry Manager</h1>
+    <p class="subtitle">Sign in to continue</p>
+    <div class="tabs">
+      <button class="tab active" data-tab="master">Master</button>
+      <button class="tab" data-tab="client">Shop</button>
+      <button class="tab" data-tab="driver">Driver</button>
+    </div>
+    <div id="login-master" class="login-form active">
+      <div class="field"><label>Master Password</label><input type="password" id="masterPass" placeholder="Enter password"></div>
+      <button class="btn btn-primary btn-block" id="masterLoginBtn">Sign In</button>
+    </div>
+    <div id="login-client" class="login-form">
+      <div class="field"><label>Shop ID</label><input type="text" id="clientShopId" placeholder="e.g., abc123"></div>
+      <div class="field"><label>Password</label><input type="password" id="clientPass" placeholder="Owner or staff password"></div>
+      <button class="btn btn-primary btn-block" id="clientLoginBtn">Sign In</button>
+    </div>
+    <div id="login-driver" class="login-form">
+      <div class="field"><label>Shop ID</label><input type="text" id="driverShopId"></div>
+      <div class="field"><label>Driver Name</label><input type="text" id="driverName"></div>
+      <div class="field"><label>Password</label><input type="password" id="driverPass"></div>
+      <button class="btn btn-primary btn-block" id="driverLoginBtn">Sign In</button>
+    </div>
+    <p class="hint">Default master password: <b>master123</b></p>
+  </div>
+</div>
+
+<!-- ============ MASTER ============ -->
+<div id="screen-master" class="shell">
+  <div class="topbar">
+    <h2>🧺 Master Console</h2>
+    <button class="btn" id="masterLogoutBtn">Logout</button>
+  </div>
+  <div class="master-layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h3>Clients</h3>
+        <button class="btn btn-primary btn-sm" id="newClientBtn">+ New</button>
+      </div>
+      <div id="clientsList"></div>
+    </aside>
+    <main class="main-content" id="mainContent">
+      <p class="empty">Select a client</p>
+    </main>
+  </div>
+</div>
+
+<!-- ============ CLIENT ============ -->
+<div id="screen-client" class="shell">
+  <div class="topbar">
+    <h2 id="shopName">Shop</h2>
+    <button class="btn" id="clientLogoutBtn">Logout</button>
+  </div>
+  <div class="pos-layout">
+    <div class="pos-main">
+      <div class="toolbar"><input type="text" id="posSearch" placeholder="🔍 Search items..."></div>
+      <div id="posItems" class="pos-items"></div>
+    </div>
+    <aside class="cart-panel">
+      <h3>🛒 Cart</h3>
+      <div id="cartList"></div>
+      <div id="cartTotals"></div>
+      <button class="btn btn-primary btn-block" id="generateBillBtn">🧾 Generate Bill</button>
+      <button class="btn btn-block" id="clearCartBtn" style="margin-top:6px;background:#f0f2f5">Clear Cart</button>
+    </aside>
+  </div>
+</div>
+
+<!-- ============ DRIVER ============ -->
+<div id="screen-driver" class="shell">
+  <div class="topbar">
+    <h2 id="driverShopName">Shop</h2>
+    <button class="btn" id="driverLogoutBtn">Logout</button>
+  </div>
+  <div id="driverBody"></div>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div id="modal"><div class="modal-content" id="modalContent"></div></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ STORAGE ============ */
+function storeGet(key, fallback) {
+  try {
+    var v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch (e) { return fallback; }
+}
+function storeSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch (e) { alert('Storage full! Export a backup and clear old data.'); return false; }
+}
+function storeRemove(key) { try { localStorage.removeItem(key); } catch (e) {} }
+
+function getMaster() { return storeGet('lm_master', { password: 'master123', whatsapp: '+973 36817742' }); }
+function setMaster(m) { storeSet('lm_master', m); }
+function getClients() { return storeGet('lm_clients', []); }
+function setClients(c) { storeSet('lm_clients', c); }
+function getClient(id) { return getClients().filter(function(x){ return x.id === id; })[0] || null; }
+function getItems(cid) { return storeGet('lm_items_' + cid, []); }
+function setItems(cid, items) { storeSet('lm_items_' + cid, items); }
+function getBills(cid) { return storeGet('lm_bills_' + cid, []); }
+function setBills(cid, bills) { storeSet('lm_bills_' + cid, bills); }
+function getCounter(cid) { return parseInt(localStorage.getItem('lm_counter_' + cid) || '1000', 10) || 1000; }
+function setCounter(cid, n) { try { localStorage.setItem('lm_counter_' + cid, String(n)); } catch(e){} }
+
+function saveClient(client) {
+  var clients = getClients();
+  var idx = -1;
+  for (var i = 0; i < clients.length; i++) { if (clients[i].id === client.id) { idx = i; break; } }
+  var isNew = idx < 0;
+  if (isNew) clients.push(client); else clients[idx] = client;
+  setClients(clients);
+  if (isNew && getItems(client.id).length === 0) seedItems(client.id);
+}
+
+function seedItems(cid) {
+  var defaults = [
+    { name:'Abaya', category:'Traditional', wash:2, dry:2.5, iron:1 },
+    { name:'Silk Abaya', category:'Traditional', wash:3, dry:3.5, iron:1.5 },
+    { name:'Daraa', category:'Traditional', wash:1.8, dry:2.2, iron:0.9 },
+    { name:'Hijab', category:'Traditional', wash:0.6, dry:0.8, iron:0.3 },
+    { name:'Thawb', category:'Summer', wash:2, dry:2.5, iron:1 },
+    { name:'Bed Sheet', category:'Home', wash:1, dry:1.5, iron:0.5 },
+    { name:'Pillow', category:'Home', wash:0.8, dry:1.2, iron:0.4 },
+    { name:'Jeans', category:'Western', wash:1.8, dry:2.2, iron:1 },
+    { name:'Shirt', category:'Western', wash:1.5, dry:2, iron:0.8 },
+    { name:'Suit', category:'Western', wash:4, dry:5, iron:2 }
+  ];
+  var items = defaults.map(function(d) {
+    return { id: uid(), name: d.name, category: d.category,
+      prices: { washIron: d.wash, dryClean: d.dry, iron: d.iron } };
+  });
+  setItems(cid, items);
+}
+
+/* ============ HELPERS ============ */
+function $(id) { return document.getElementById(id); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function money(n) { return Number(n || 0).toFixed(3); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* ============ STATE ============ */
+var state = {
+  role: null,
+  client: null,
+  driverName: null,
+  cart: [],
+  selectedClientId: null,
+  activeMasterTab: 'overview',
+  searchTerm: ''
+};
+
+/* ============ UI ============ */
+function showScreen(name) {
+  var screens = { login: 'screen-login', master: 'screen-master', client: 'screen-client', driver: 'screen-driver' };
+  for (var key in screens) {
+    var el = $(screens[key]);
+    if (!el) continue;
+    if (key === name) {
+      el.classList.add('active');
+      if (key === 'login') { el.style.display = 'flex'; el.classList.remove('shell'); }
+    } else {
+      el.classList.remove('active');
+      el.style.display = 'none';
+    }
+  }
+  if (name !== 'login') {
+    var el2 = $(screens[name]);
+    if (el2) { el2.style.display = 'flex'; el2.classList.add('shell'); }
+  }
+}
+
+var toastTimer = null;
+function showToast(msg) {
+  var el = $('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+function openModal(html) {
+  $('modalContent').innerHTML = html;
+  $('modal').classList.add('show');
+  $('modal').style.display = 'flex';
+}
+function closeModal() {
+  $('modal').classList.remove('show');
+  $('modal').style.display = 'none';
+  $('modalContent').innerHTML = '';
+}
+function confirmModal(msg, onYes) {
+  openModal(
+    '<h2>Confirm</h2>' +
+    '<p style="margin-bottom:16px;color:#64748b">' + esc(msg) + '</p>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-danger" id="confirmYes">Yes, Continue</button>' +
+      '<button class="btn" id="confirmNo" style="background:#f0f2f5">Cancel</button>' +
+    '</div>'
+  );
+  $('confirmNo').addEventListener('click', closeModal);
+  $('confirmYes').addEventListener('click', function() {
+    closeModal();
+    onYes();
+  });
+}
+
+/* ============ LOGIN TABS ============ */
+var tabButtons = document.querySelectorAll('.tab');
+for (var i = 0; i < tabButtons.length; i++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      for (var j = 0; j < tabButtons.length; j++) tabButtons[j].classList.remove('active');
+      btn.classList.add('active');
+      var forms = document.querySelectorAll('.login-form');
+      for (var k = 0; k < forms.length; k++) forms[k].classList.remove('active');
+      var target = $('login-' + btn.getAttribute('data-tab'));
+      if (target) target.classList.add('active');
+    });
+  })(tabButtons[i]);
+}
+
+/* ============ LOGIN HANDLERS ============ */
+$('masterLoginBtn').addEventListener('click', function() {
+  var pass = $('masterPass').value;
+  if (pass !== getMaster().password) { showToast('Wrong password'); return; }
+  $('masterPass').value = '';
+  state.role = 'master';
+  state.selectedClientId = null;
+  showScreen('master');
+  renderClientsList();
+  $('mainContent').innerHTML = '<p class="empty">Select a client</p>';
+});
+
+$('clientLoginBtn').addEventListener('click', function() {
+  var shopId = $('clientShopId').value.trim();
+  var pass = $('clientPass').value;
+  var client = getClient(shopId);
+  if (!client) { showToast('Shop not found'); return; }
+  var isOwner = client.ownerPassword === pass;
+  var isStaff = client.staffPassword && client.staffPassword === pass;
+  if (!isOwner && !isStaff) { showToast('Wrong password'); return; }
+
+  var today = new Date(); today.setHours(0,0,0,0);
+  var exp = new Date(client.expiry); exp.setHours(23,59,59,999);
+  if (today > exp) { showToast('License expired — contact master'); return; }
+
+  $('clientPass').value = '';
+  state.client = client;
+  state.role = 'client';
+  state.cart = [];
+  $('shopName').textContent = client.shopName;
+  showScreen('client');
+  renderPOSItems();
+  renderCart();
+});
+
+$('driverLoginBtn').addEventListener('click', function() {
+  var shopId = $('driverShopId').value.trim();
+  var name = $('driverName').value.trim();
+  var pass = $('driverPass').value;
+  var client = getClient(shopId);
+  if (!client) { showToast('Shop not found'); return; }
+  var driver = null;
+  var drivers = client.drivers || [];
+  for (var i = 0; i < drivers.length; i++) { if (drivers[i].name === name) { driver = drivers[i]; break; } }
+  if (!driver) { showToast('Driver not found'); return; }
+  if (driver.password !== pass) { showToast('Wrong password'); return; }
+  $('driverPass').value = '';
+  state.client = client;
+  state.driverName = name;
+  state.role = 'driver';
+  $('driverShopName').textContent = client.shopName + ' — ' + name;
+  showScreen('driver');
+  renderDriverDeliveries();
+});
+
+function logout() {
+  state.role = null;
+  state.client = null;
+  state.driverName = null;
+  state.cart = [];
+  state.selectedClientId = null;
+  showScreen('login');
+}
+$('masterLogoutBtn').addEventListener('click', logout);
+$('clientLogoutBtn').addEventListener('click', logout);
+$('driverLogoutBtn').addEventListener('click', logout);
+
+/* ============ MASTER: CLIENT LIST ============ */
+function renderClientsList() {
+  var clients = getClients();
+  var container = $('clientsList');
+  if (!clients.length) {
+    container.innerHTML = '<p class="empty">No clients yet</p>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < clients.length; i++) {
+    var c = clients[i];
+    var active = c.id === state.selectedClientId ? ' active' : '';
+    html += '<div class="client-item' + active + '" data-client-id="' + esc(c.id) + '">' +
+      '<div class="client-name">' + esc(c.shopName) + '</div>' +
+      '<div class="client-meta">ID: ' + esc(c.id) + '</div>' +
+      '</div>';
+  }
+  container.innerHTML = html;
+}
+
+$('clientsList').addEventListener('click', function(e) {
+  var item = e.target.closest('[data-client-id]');
+  if (!item) return;
+  state.selectedClientId = item.getAttribute('data-client-id');
+  state.activeMasterTab = 'overview';
+  renderClientsList();
+  renderMasterContent();
+});
+
+$('newClientBtn').addEventListener('click', function() { openClientEditor(null); });
+
+/* ============ MASTER: CLIENT EDITOR ============ */
+function openClientEditor(client) {
+  var isEdit = !!client;
+  var c = client || {
+    shopName: '', address: '', ownerPassword: '', staffPassword: '',
+    expiry: '2030-12-31', currency: 'BHD',
+    timeSlots: '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM',
+    drivers: []
+  };
+  openModal(
+    '<h2>' + (isEdit ? 'Edit' : 'Add') + ' Client</h2>' +
+    '<div class="field"><label>Shop Name *</label><input id="ceShopName" value="' + esc(c.shopName) + '"></div>' +
+    '<div class="field"><label>Address</label><input id="ceAddress" value="' + esc(c.address || '') + '"></div>' +
+    '<div class="field"><label>Owner Password *</label><input id="ceOwnerPassword" value="' + esc(c.ownerPassword) + '"></div>' +
+    '<div class="field"><label>Staff Password (optional)</label><input id="ceStaffPassword" value="' + esc(c.staffPassword || '') + '"></div>' +
+    '<div class="field"><label>Expiry Date *</label><input type="date" id="ceExpiry" value="' + esc(c.expiry) + '"></div>' +
+    '<div class="field"><label>Currency</label><input id="ceCurrency" value="' + esc(c.currency) + '"></div>' +
+    '<div class="field"><label>Time Slots</label><input id="ceTimeSlots" value="' + esc(c.timeSlots || '') + '"></div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-primary" id="ceSaveBtn">Save</button>' +
+      '<button class="btn" id="ceCancelBtn" style="background:#f0f2f5">Cancel</button>' +
+    '</div>' +
+    (isEdit ? '<button class="btn btn-danger btn-block" id="ceDeleteBtn" style="margin-top:8px">Delete Client</button>' : '')
+  );
+
+  $('ceCancelBtn').addEventListener('click', closeModal);
+  $('ceSaveBtn').addEventListener('click', function() {
+    var name = $('ceShopName').value.trim();
+    var pass = $('ceOwnerPassword').value;
+    var expiry = $('ceExpiry').value;
+    if (!name || !pass || !expiry) { showToast('Name, password, expiry required'); return; }
+
+    var newClient = {
+      id: c.id || uid(),
+      shopName: name,
+      address: $('ceAddress').value.trim(),
+      ownerPassword: pass,
+      staffPassword: $('ceStaffPassword').value,
+      expiry: expiry,
+      currency: $('ceCurrency').value.trim() || 'BHD',
+      timeSlots: $('ceTimeSlots').value.trim(),
+      drivers: c.drivers || []
+    };
+    saveClient(newClient);
+    closeModal();
+    renderClientsList();
+    if (state.selectedClientId === newClient.id) {
+      state.selectedClientId = newClient.id;
+      renderMasterContent();
+    }
+    showToast('Saved');
+  });
+
+  if (isEdit) {
+    $('ceDeleteBtn').addEventListener('click', function() {
+      confirmModal('Delete this client and all data?', function() {
+        var clients = getClients().filter(function(x) { return x.id !== c.id; });
+        setClients(clients);
+        storeRemove('lm_items_' + c.id);
+        storeRemove('lm_bills_' + c.id);
+        storeRemove('lm_counter_' + c.id);
+        if (state.selectedClientId === c.id) state.selectedClientId = null;
+        closeModal();
+        renderClientsList();
+        $('mainContent').innerHTML = '<p class="empty">Select a client</p>';
+        showToast('Deleted');
+      });
+    });
+  }
+}
+
+/* ============ MASTER: CONTENT ============ */
+function renderMasterContent() {
+  var cid = state.selectedClientId;
+  var client = getClient(cid);
+  if (!client) {
+    $('mainContent').innerHTML = '<p class="empty">Select a client</p>';
+    return;
+  }
+
+  var tabs = ['overview', 'catalogue', 'bills', 'customers', 'drivers', 'settings'];
+  var tabsHtml = '';
+  for (var i = 0; i < tabs.length; i++) {
+    var t = tabs[i];
+    var active = state.activeMasterTab === t ? ' active' : '';
+    tabsHtml += '<button class="tab-btn' + active + '" data-master-tab="' + t + '">' + cap(t) + '</button>';
+  }
+
+  $('mainContent').innerHTML =
+    '<div class="content-header">' +
+      '<div>' +
+        '<h2>' + esc(client.shopName) + '</h2>' +
+        '<p class="text-muted">ID: ' + esc(client.id) + ' · Expires ' + esc(client.expiry) + '</p>' +
+      '</div>' +
+      '<button class="btn btn-primary" data-action="edit-client">Edit Client</button>' +
+    '</div>' +
+    '<div class="tab-bar">' + tabsHtml + '</div>' +
+    '<div id="masterTabContent"></div>';
+
+  $('mainContent').querySelector('[data-action="edit-client"]').addEventListener('click', function() {
+    openClientEditor(client);
+  });
+
+  var tabEls = $('mainContent').querySelectorAll('[data-master-tab]');
+  for (var j = 0; j < tabEls.length; j++) {
+    (function(tabEl) {
+      tabEl.addEventListener('click', function() {
+        state.activeMasterTab = tabEl.getAttribute('data-master-tab');
+        renderMasterContent();
+      });
+    })(tabEls[j]);
+  }
+
+  renderMasterTabContent(client);
+}
+
+function renderMasterTabContent(client) {
+  var container = $('masterTabContent');
+  if (!container) return;
+  var tab = state.activeMasterTab;
+
+  if (tab === 'overview') container.innerHTML = renderOverviewTab(client);
+  else if (tab === 'catalogue') container.innerHTML = renderCatalogueTab(client);
+  else if (tab === 'bills') container.innerHTML = renderBillsTab(client);
+  else if (tab === 'customers') container.innerHTML = renderCustomersTab(client);
+  else if (tab === 'drivers') container.innerHTML = renderDriversTab(client);
+  else if (tab === 'settings') container.innerHTML = renderSettingsTab(client);
+
+  attachMasterTabHandlers(client);
+}
+
+function renderOverviewTab(client) {
+  var items = getItems(client.id);
+  var bills = getBills(client.id);
+  var cur = client.currency || 'BHD';
+  var revenue = 0;
+  var pending = 0;
+  for (var i = 0; i < bills.length; i++) {
+    revenue += bills[i].total || 0;
+    if (bills[i].paymentStatus === 'Pending') pending++;
+  }
+  var recent = bills.slice(0, 5);
+  var recentHtml = '';
+  for (var k = 0; k < recent.length; k++) {
+    var b = recent[k];
+    recentHtml += '<div class="list-row" data-bill-no="' + b.number + '">' +
+      '<div><div class="list-row-title">#' + b.number + ' — ' + esc(b.customer.name) + '</div>' +
+      '<div class="list-row-meta">' + new Date(b.date).toLocaleDateString() + ' · ' + b.paymentStatus + '</div></div>' +
+      '<strong>' + money(b.total) + ' ' + esc(cur) + '</strong></div>';
+  }
+  if (!recentHtml) recentHtml = '<p class="empty">No bills yet</p>';
+
+  return '<div class="stats-grid">' +
+    '<div class="stat-card"><div class="stat-label">Items</div><div class="stat-value">' + items.length + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Bills</div><div class="stat-value">' + bills.length + '</div><div class="stat-sub">' + pending + ' pending</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">' + money(revenue) + '</div><div class="stat-sub">' + esc(cur) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Drivers</div><div class="stat-value">' + (client.drivers || []).length + '</div></div>' +
+    '</div>' +
+    '<div class="card"><div class="card-head"><h3>Recent Bills</h3></div><div class="card-body">' + recentHtml + '</div></div>';
+}
+
+function renderCatalogueTab(client) {
+  var items = getItems(client.id);
+  var html = '<div class="card-head"><h3>' + items.length + ' items</h3><button class="btn btn-primary btn-sm" id="addItemBtn">+ Add Item</button></div><div class="items-grid">';
+  if (!items.length) html += '<p class="empty">No items yet</p>';
+  else {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      html += '<div class="item-card">' +
+        '<div class="item-name">' + esc(it.name) + '</div>' +
+        '<div class="item-cat">' + esc(it.category || 'Other') + '</div>' +
+        '<div class="item-prices">' +
+          'W&I: <strong>' + money(it.prices.washIron) + '</strong><br>' +
+          'Dry: <strong>' + money(it.prices.dryClean) + '</strong><br>' +
+          'Iron: <strong>' + money(it.prices.iron) + '</strong>' +
+        '</div>' +
+        '<div class="item-actions">' +
+          '<button data-edit-item="' + esc(it.id) + '">Edit</button>' +
+          '<button class="btn-danger" data-delete-item="' + esc(it.id) + '">Del</button>' +
+        '</div>' +
+      '</div>';
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderBillsTab(client) {
+  var bills = getBills(client.id);
+  var cur = client.currency || 'BHD';
+  var html = '<div class="card"><div class="card-head"><h3>' + bills.length + ' bills</h3></div><div class="card-body">';
+  if (!bills.length) html += '<p class="empty">No bills yet</p>';
+  else {
+    for (var i = 0; i < bills.length; i++) {
+      var b = bills[i];
+      html += '<div class="list-row" data-bill-no="' + b.number + '">' +
+        '<div><div class="list-row-title">#' + b.number + ' — ' + esc(b.customer.name) + '</div>' +
+        '<div class="list-row-meta">' + new Date(b.date).toLocaleString() + ' · ' + b.paymentStatus + '</div></div>' +
+        '<strong>' + money(b.total) + ' ' + esc(cur) + '</strong></div>';
+    }
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderCustomersTab(client) {
+  var bills = getBills(client.id);
+  var cur = client.currency || 'BHD';
+  var map = {};
+  for (var i = 0; i < bills.length; i++) {
+    var phone = (bills[i].customer.phone || '').trim();
+    if (!phone) continue;
+    if (!map[phone]) map[phone] = { name: bills[i].customer.name, phone: phone, count: 0, total: 0 };
+    map[phone].count++;
+    map[phone].total += bills[i].total || 0;
+  }
+  var keys = Object.keys(map);
+  var html = '<div class="card"><div class="card-head"><h3>' + keys.length + ' customers</h3></div><div class="card-body">';
+  if (!keys.length) html += '<p class="empty">No customers yet</p>';
+  else {
+    for (var k = 0; k < keys.length; k++) {
+      var c = map[keys[k]];
+      html += '<div class="list-row" style="cursor:default">' +
+        '<div><div class="list-row-title">' + esc(c.name) + '</div>' +
+        '<div class="list-row-meta">' + esc(c.phone) + ' · ' + c.count + ' orders</div></div>' +
+        '<strong>' + money(c.total) + ' ' + esc(cur) + '</strong></div>';
+    }
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderDriversTab(client) {
+  var drivers = client.drivers || [];
+  var html = '<div class="card"><div class="card-head"><h3>' + drivers.length + ' drivers</h3><button class="btn btn-primary btn-sm" id="addDriverBtn">+ Add Driver</button></div><div class="card-body">';
+  if (!drivers.length) html += '<p class="empty">No drivers yet</p>';
+  else {
+    for (var i = 0; i < drivers.length; i++) {
+      var d = drivers[i];
+      html += '<div class="list-row" style="cursor:default">' +
+        '<div><div class="list-row-title">' + esc(d.name) + '</div>' +
+        '<div class="list-row-meta">Password: ' + esc(d.password) + '</div></div>' +
+        '<button class="btn btn-sm btn-danger" data-delete-driver="' + i + '">Delete</button></div>';
+    }
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderSettingsTab(client) {
+  return '<div class="card"><div class="card-head"><h3>Settings</h3></div><div style="padding:16px">' +
+    '<div class="field"><label>Shop Name</label><input id="msShopName" value="' + esc(client.shopName) + '"></div>' +
+    '<div class="field"><label>Address</label><input id="msAddress" value="' + esc(client.address || '') + '"></div>' +
+    '<div class="field"><label>Owner Password</label><input id="msOwnerPassword" value="' + esc(client.ownerPassword) + '"></div>' +
+    '<div class="field"><label>Staff Password</label><input id="msStaffPassword" value="' + esc(client.staffPassword || '') + '"></div>' +
+    '<div class="field"><label>Currency</label><input id="msCurrency" value="' + esc(client.currency || 'BHD') + '"></div>' +
+    '<div class="field"><label>Expiry Date</label><input type="date" id="msExpiry" value="' + esc(client.expiry) + '"></div>' +
+    '<button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>' +
+  '</div></div>';
+}
+
+function attachMasterTabHandlers(client) {
+  var addItemBtn = $('addItemBtn');
+  if (addItemBtn) addItemBtn.addEventListener('click', function() { openItemEditor(client.id, null); });
+
+  var editBtns = document.querySelectorAll('[data-edit-item]');
+  for (var i = 0; i < editBtns.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() { openItemEditor(client.id, btn.getAttribute('data-edit-item')); });
+    })(editBtns[i]);
+  }
+
+  var delBtns = document.querySelectorAll('[data-delete-item]');
+  for (var j = 0; j < delBtns.length; j++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var itemId = btn.getAttribute('data-delete-item');
+        confirmModal('Delete this item?', function() {
+          var items = getItems(client.id).filter(function(x) { return x.id !== itemId; });
+          setItems(client.id, items);
+          renderMasterTabContent(client);
+          showToast('Deleted');
+        });
+      });
+    })(delBtns[j]);
+  }
+
+  var billRows = document.querySelectorAll('[data-bill-no]');
+  for (var k = 0; k < billRows.length; k++) {
+    (function(row) {
+      row.addEventListener('click', function() {
+        var num = parseInt(row.getAttribute('data-bill-no'), 10);
+        var bills = getBills(client.id);
+        var found = null;
+        for (var m = 0; m < bills.length; m++) { if (bills[m].number === num) { found = bills[m]; break; } }
+        if (found) viewBill(found, client);
+      });
+    })(billRows[k]);
+  }
+
+  var addDriverBtn = $('addDriverBtn');
+  if (addDriverBtn) addDriverBtn.addEventListener('click', function() { openDriverEditor(client); });
+
+  var delDriverBtns = document.querySelectorAll('[data-delete-driver]');
+  for (var n = 0; n < delDriverBtns.length; n++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-delete-driver'), 10);
+        confirmModal('Delete this driver?', function() {
+          var clients = getClients();
+          for (var x = 0; x < clients.length; x++) {
+            if (clients[x].id === client.id) {
+              clients[x].drivers = (clients[x].drivers || []).filter(function(_, i2) { return i2 !== idx; });
+              break;
+            }
+          }
+          setClients(clients);
+          renderMasterContent();
+          showToast('Driver deleted');
+        });
+      });
+    })(delDriverBtns[n]);
+  }
+
+  var saveBtn = $('saveSettingsBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      var clients = getClients();
+      for (var x = 0; x < clients.length; x++) {
+        if (clients[x].id === client.id) {
+          clients[x].shopName = $('msShopName').value.trim() || clients[x].shopName;
+          clients[x].address = $('msAddress').value.trim();
+          clients[x].ownerPassword = $('msOwnerPassword').value;
+          clients[x].staffPassword = $('msStaffPassword').value;
+          clients[x].currency = $('msCurrency').value.trim() || 'BHD';
+          clients[x].expiry = $('msExpiry').value;
+          break;
+        }
+      }
+      setClients(clients);
+      showToast('Saved');
+      renderMasterContent();
+    });
+  }
+}
+
+/* ============ DRIVER EDITOR ============ */
+function openDriverEditor(client) {
+  openModal(
+    '<h2>Add Driver</h2>' +
+    '<div class="field"><label>Name</label><input id="driverNameInput"></div>' +
+    '<div class="field"><label>Password</label><input id="driverPassInput"></div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-primary" id="driverSaveBtn">Save</button>' +
+      '<button class="btn" id="driverCancelBtn" style="background:#f0f2f5">Cancel</button>' +
+    '</div>'
+  );
+  $('driverCancelBtn').addEventListener('click', closeModal);
+  $('driverSaveBtn').addEventListener('click', function() {
+    var name = $('driverNameInput').value.trim();
+    var pass = $('driverPassInput').value;
+    if (!name || !pass) { showToast('Name and password required'); return; }
+    var clients = getClients();
+    for (var i = 0; i < clients.length; i++) {
+      if (clients[i].id === client.id) {
+        clients[i].drivers = clients[i].drivers || [];
+        clients[i].drivers.push({ name: name, password: pass });
+        break;
+      }
+    }
+    setClients(clients);
+    closeModal();
+    renderMasterContent();
+    showToast('Driver added');
+  });
+}
+
+/* ============ ITEM EDITOR ============ */
+function openItemEditor(cid, itemId) {
+  var items = getItems(cid);
+  var item = null;
+  if (itemId) {
+    for (var i = 0; i < items.length; i++) { if (items[i].id === itemId) { item = items[i]; break; } }
+  }
+  openModal(
+    '<h2>' + (item ? 'Edit' : 'Add') + ' Item</h2>' +
+    '<div class="field"><label>Name *</label><input id="ieName" value="' + (item ? esc(item.name) : '') + '"></div>' +
+    '<div class="field"><label>Category</label><input id="ieCategory" value="' + (item ? esc(item.category) : '') + '"></div>' +
+    '<div class="field"><label>Wash & Iron Price</label><input type="number" step="0.001" id="ieWash" value="' + (item ? item.prices.washIron : '') + '"></div>' +
+    '<div class="field"><label>Dry Clean Price</label><input type="number" step="0.001" id="ieDry" value="' + (item ? item.prices.dryClean : '') + '"></div>' +
+    '<div class="field"><label>Iron Only Price</label><input type="number" step="0.001" id="ieIron" value="' + (item ? item.prices.iron : '') + '"></div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-primary" id="ieSaveBtn">Save</button>' +
+      '<button class="btn" id="ieCancelBtn" style="background:#f0f2f5">Cancel</button>' +
+    '</div>'
+  );
+  $('ieCancelBtn').addEventListener('click', closeModal);
+  $('ieSaveBtn').addEventListener('click', function() {
+    var name = $('ieName').value.trim();
+    var wash = parseFloat($('ieWash').value);
+    var dry = parseFloat($('ieDry').value);
+    var iron = parseFloat($('ieIron').value);
+    if (!name) { showToast('Name required'); return; }
+    if (isNaN(wash) || isNaN(dry) || isNaN(iron)) { showToast('All prices required'); return; }
+    var newItem = {
+      id: item ? item.id : uid(),
+      name: name,
+      category: $('ieCategory').value.trim() || 'Other',
+      prices: { washIron: wash, dryClean: dry, iron: iron }
+    };
+    var items = getItems(cid);
+    if (item) {
+      for (var x = 0; x < items.length; x++) { if (items[x].id === item.id) { items[x] = newItem; break; } }
+    } else {
+      items.push(newItem);
+    }
+    setItems(cid, items);
+    closeModal();
+    var client = getClient(cid);
+    if (state.role === 'master' && state.selectedClientId === cid) {
+      renderMasterContent();
+    } else if (state.role === 'client') {
+      renderPOSItems();
+    }
+    showToast('Saved');
+  });
+}
+
+/* ============ POS: RENDER ITEMS ============ */
+function renderPOSItems() {
+  var client = state.client;
+  if (!client) return;
+  var items = getItems(client.id);
+  var search = state.searchTerm.toLowerCase();
+  var filtered = [];
+  for (var i = 0; i < items.length; i++) {
+    if (!search || items[i].name.toLowerCase().indexOf(search) !== -1) filtered.push(items[i]);
+  }
+  var cur = client.currency || 'BHD';
+  var container = $('posItems');
+  if (!filtered.length) {
+    container.innerHTML = '<p class="empty">No items found</p>';
+    return;
+  }
+  var html = '';
+  for (var j = 0; j < filtered.length; j++) {
+    var it = filtered[j];
+    html += '<div class="pos-item" data-item-id="' + esc(it.id) + '">' +
+      '<div class="pos-item-name">' + esc(it.name) + '</div>' +
+      '<div class="pos-item-cat">' + esc(it.category || '') + '</div>' +
+      '<div class="pos-item-price">' + money(it.prices.washIron) + ' ' + esc(cur) + '</div>' +
+    '</div>';
+  }
+  container.innerHTML = html;
+}
+
+$('posItems').addEventListener('click', function(e) {
+  var item = e.target.closest('[data-item-id]');
+  if (!item) return;
+  openServicePicker(item.getAttribute('data-item-id'));
+});
+
+$('posSearch').addEventListener('input', function(e) {
+  state.searchTerm = e.target.value;
+  renderPOSItems();
+});
+
+/* ============ SERVICE PICKER ============ */
+function openServicePicker(itemId) {
+  var items = getItems(state.client.id);
+  var item = null;
+  for (var i = 0; i < items.length; i++) { if (items[i].id === itemId) { item = items[i]; break; } }
+  if (!item) return;
+  openModal(
+    '<h2>' + esc(item.name) + '</h2>' +
+    '<div class="field"><label>Select Service</label>' +
+      '<select id="servicePick">' +
+        '<option value="Wash & Iron|' + item.prices.washIron + '">Wash & Iron — ' + money(item.prices.washIron) + '</option>' +
+        '<option value="Dry Clean|' + item.prices.dryClean + '">Dry Clean — ' + money(item.prices.dryClean) + '</option>' +
+        '<option value="Iron Only|' + item.prices.iron + '">Iron Only — ' + money(item.prices.iron) + '</option>' +
+      '</select></div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-primary" id="addToCartBtn">Add to Cart</button>' +
+      '<button class="btn" id="cancelAddBtn" style="background:#f0f2f5">Cancel</button>' +
+    '</div>'
+  );
+  $('cancelAddBtn').addEventListener('click', closeModal);
+  $('addToCartBtn').addEventListener('click', function() {
+    var val = $('servicePick').value;
+    var parts = val.split('|');
+    var service = parts[0];
+    var price = parseFloat(parts[1]);
+    var existing = null;
+    for (var x = 0; x < state.cart.length; x++) {
+      if (state.cart[x].itemId === itemId && state.cart[x].service === service) {
+        existing = state.cart[x];
+        break;
+      }
+    }
+    if (existing) existing.qty++;
+    else state.cart.push({ itemId: itemId, name: item.name, service: service, price: price, qty: 1 });
+    closeModal();
+    renderCart();
+  });
+}
+
+/* ============ CART ============ */
+function renderCart() {
+  var client = state.client;
+  if (!client) return;
+  var cur = client.currency || 'BHD';
+  var cart = state.cart;
+  var container = $('cartList');
+  var totals = $('cartTotals');
+
+  if (!cart.length) {
+    container.innerHTML = '<p class="empty" style="padding:20px 0">Cart is empty</p>';
+    totals.innerHTML = '';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < cart.length; i++) {
+    var it = cart[i];
+    html += '<div class="cart-item">' +
+      '<div class="cart-item-info">' +
+        '<div class="cart-item-name">' + esc(it.name) + '</div>' +
+        '<div class="cart-item-service">' + esc(it.service) + '</div>' +
+      '</div>' +
+      '<div class="cart-item-qty">' +
+        '<button data-decrease="' + i + '">−</button>' +
+        '<span>' + it.qty + '</span>' +
+        '<button data-increase="' + i + '">+</button>' +
+      '</div>' +
+      '<div class="cart-item-price">' + money(it.price * it.qty) + '</div>' +
+    '</div>';
+  }
+  container.innerHTML = html;
+
+  var incBtns = container.querySelectorAll('[data-increase]');
+  for (var a = 0; a < incBtns.length; a++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-increase'), 10);
+        state.cart[idx].qty++;
+        renderCart();
+      });
+    })(incBtns[a]);
+  }
+  var decBtns = container.querySelectorAll('[data-decrease]');
+  for (var b = 0; b < decBtns.length; b++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-decrease'), 10);
+        state.cart[idx].qty--;
+        if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
+        renderCart();
+      });
+    })(decBtns[b]);
+  }
+
+  var subtotal = 0;
+  for (var s = 0; s < cart.length; s++) subtotal += cart[s].price * cart[s].qty;
+  totals.innerHTML =
+    '<div class="total-line"><span>Subtotal</span><span>' + money(subtotal) + ' ' + esc(cur) + '</span></div>' +
+    '<div class="total-line grand"><span>Total</span><span>' + money(subtotal) + ' ' + esc(cur) + '</span></div>';
+}
+
+$('clearCartBtn').addEventListener('click', function() {
+  state.cart = [];
+  renderCart();
+});
+
+/* ============ BILL FORM ============ */
+$('generateBillBtn').addEventListener('click', function() {
+  if (!state.cart.length) { showToast('Cart is empty'); return; }
+  openBillForm();
+});
+
+function openBillForm() {
+  openModal(
+    '<h2>Customer Info</h2>' +
+    '<div class="field"><label>Name</label><input id="billCustName" placeholder="Walk-in Customer"></div>' +
+    '<div class="field"><label>Phone</label><input id="billCustPhone"></div>' +
+    '<div class="field"><label>Address</label><input id="billCustAddress"></div>' +
+    '<div class="field"><label><input type="checkbox" id="billDelivery" style="width:auto"> Mark for delivery</label></div>' +
+    '<div id="billDeliveryFields" style="display:none">' +
+      '<div class="field"><label>Driver</label><select id="billDriver"></select></div>' +
+      '<div class="field"><label>Time Slot</label><select id="billTimeSlot"></select></div>' +
+    '</div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-primary" id="createBillBtn">Create Bill</button>' +
+      '<button class="btn" id="cancelBillBtn" style="background:#f0f2f5">Cancel</button>' +
+    '</div>'
+  );
+  $('cancelBillBtn').addEventListener('click', closeModal);
+
+  $('billDelivery').addEventListener('change', function(e) {
+    var fields = $('billDeliveryFields');
+    fields.style.display = e.target.checked ? 'block' : 'none';
+    if (!e.target.checked) return;
+
+    var drivers = state.client.drivers || [];
+    var driverOpts = '';
+    for (var i = 0; i < drivers.length; i++) {
+      driverOpts += '<option value="' + esc(drivers[i].name) + '">' + esc(drivers[i].name) + '</option>';
+    }
+    $('billDriver').innerHTML = driverOpts || '<option value="">No drivers</option>';
+
+    var slots = (state.client.timeSlots || '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM')
+      .split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var slotOpts = '';
+    for (var j = 0; j < slots.length; j++) {
+      slotOpts += '<option value="' + esc(slots[j]) + '">' + esc(slots[j]) + '</option>';
+    }
+    $('billTimeSlot').innerHTML = slotOpts;
+  });
+
+  $('createBillBtn').addEventListener('click', function() {
+    createBill();
+  });
+}
+
+function createBill() {
+  var client = state.client;
+  var cart = state.cart;
+  var subtotal = 0;
+  for (var i = 0; i < cart.length; i++) subtotal += cart[i].price * cart[i].qty;
+
+  var counter = getCounter(client.id) + 1;
+  setCounter(client.id, counter);
+
+  var delivery = $('billDelivery').checked;
+  var driverName = delivery ? ($('billDriver').value || '') : '';
+  var timeSlot = delivery ? ($('billTimeSlot').value || '') : '';
+
+  var bill = {
+    number: counter,
+    date: new Date().toISOString(),
+    items: JSON.parse(JSON.stringify(cart)),
+    subtotal: subtotal,
+    total: subtotal,
+    currency: client.currency || 'BHD',
+    customer: {
+      name: $('billCustName').value.trim() || 'Walk-in Customer',
+      phone: $('billCustPhone').value.trim(),
+      address: $('billCustAddress').value.trim()
+    },
+    delivery: delivery,
+    driverName: driverName,
+    timeSlot: timeSlot,
+    status: 'Pending',
+    paymentStatus: 'Pending',
+    paymentMethod: ''
+  };
+
+  var bills = getBills(client.id);
+  bills.unshift(bill);
+  setBills(client.id, bills);
+
+  state.cart = [];
+  closeModal();
+  renderCart();
+  viewBill(bill, client);
+  showToast('Bill #' + counter + ' created');
+}
+
+/* ============ BILL VIEWER ============ */
+function viewBill(bill, client) {
+  var cur = bill.currency || client.currency || 'BHD';
+  var itemsHtml = '';
+  for (var i = 0; i < bill.items.length; i++) {
+    var it = bill.items[i];
+    itemsHtml += '<div class="bill-item">' +
+      '<span>' + esc(it.name) + ' (' + esc(it.service) + ') × ' + it.qty + '</span>' +
+      '<strong>' + money(it.price * it.qty) + '</strong>' +
+    '</div>';
+  }
+
+  var actions = '<button class="btn btn-primary" id="printBillBtn">🖨️ Print</button>' +
+    '<button class="btn" id="pdfBillBtn" style="background:#f59e0b;color:#fff">📄 PDF</button>';
+
+  var actions2 = '';
+  if (bill.paymentStatus === 'Pending') {
+    actions2 += '<button class="btn btn-primary" id="markPaidBtn" style="flex:1">Mark as Paid</button>';
+  }
+  actions2 += '<button class="btn" id="closeBillBtn" style="background:#f0f2f5">Close</button>';
+
+  openModal(
+    '<div id="printableBill">' +
+      '<div class="bill-header">' +
+        '<h2>' + esc(client.shopName) + '</h2>' +
+        '<p>' + esc(client.address || '') + '</p>' +
+        '<p>' + esc(getMaster().whatsapp) + '</p>' +
+      '</div>' +
+      '<hr class="bill-divider">' +
+      '<h3>Bill #' + bill.number + '</h3>' +
+      '<p class="text-muted" style="margin-bottom:8px">' + new Date(bill.date).toLocaleString() + '</p>' +
+      (bill.customer.name ? '<p style="margin:4px 0"><strong>' + esc(bill.customer.name) + '</strong>' +
+        (bill.customer.phone ? ' · ' + esc(bill.customer.phone) : '') + '</p>' : '') +
+      (bill.delivery ? '<p style="margin:4px 0">🚚 ' + esc(bill.driverName) + ' · ' + esc(bill.timeSlot) + '</p>' : '') +
+      '<hr class="bill-divider">' +
+      itemsHtml +
+      '<div class="bill-total"><span>Total</span><span>' + money(bill.total) + ' ' + esc(cur) + '</span></div>' +
+      '<p style="text-align:center;margin-top:8px;color:' + (bill.paymentStatus === 'Paid' ? 'green' : '#d97706') + ';font-weight:700">' +
+        (bill.paymentStatus === 'Paid' ? 'PAID — ' + esc(bill.paymentMethod) : 'Payment Pending') + '</p>' +
+      '<p style="text-align:center;margin-top:8px;font-weight:700">Thank you!</p>' +
+    '</div>' +
+    '<div class="modal-actions no-print">' + actions + '</div>' +
+    '<div class="modal-actions no-print">' + actions2 + '</div>'
+  );
+
+  $('printBillBtn').addEventListener('click', function() { window.print(); });
+  $('pdfBillBtn').addEventListener('click', function() { downloadBillPDF(bill, client); });
+  $('closeBillBtn').addEventListener('click', closeModal);
+  if ($('markPaidBtn')) {
+    $('markPaidBtn').addEventListener('click', function() {
+      var bills = getBills(client.id);
+      for (var i = 0; i < bills.length; i++) {
+        if (bills[i].number === bill.number) {
+          bills[i].paymentStatus = 'Paid';
+          bills[i].paymentMethod = 'Cash';
+          break;
+        }
+      }
+      setBills(client.id, bills);
+      bill.paymentStatus = 'Paid';
+      bill.paymentMethod = 'Cash';
+      viewBill(bill, client);
+      showToast('Marked as paid');
+    });
+  }
+}
+
+/* ============ PDF ============ */
+function downloadBillPDF(bill, client) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    showToast('PDF library not loaded — check your internet');
+    return;
+  }
+  try {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ unit: 'mm', format: [80, 220] });
+    var cur = bill.currency || client.currency || 'BHD';
+    var y = 10;
+
+    doc.setFontSize(12);
+    doc.text(client.shopName, 40, y, { align: 'center' });
+    y += 6;
+    doc.setFontSize(8);
+    if (client.address) { doc.text(client.address, 40, y, { align: 'center' }); y += 4; }
+    doc.text(getMaster().whatsapp, 40, y, { align: 'center' });
+    y += 6;
+    doc.setDrawColor(180);
+    doc.line(5, y, 75, y); y += 4;
+
+    doc.setFontSize(10);
+    doc.text('Bill #' + bill.number, 5, y); y += 4;
+    doc.setFontSize(8);
+    doc.text(new Date(bill.date).toLocaleString(), 5, y); y += 4;
+    if (bill.customer.name) { doc.text(bill.customer.name, 5, y); y += 4; }
+
+    doc.line(5, y, 75, y); y += 4;
+
+    for (var i = 0; i < bill.items.length; i++) {
+      var it = bill.items[i];
+      var label = (it.name + ' (' + it.service + ')').slice(0, 26);
+      doc.text(label, 5, y);
+      doc.text('x' + it.qty, 55, y);
+      doc.text(money(it.price * it.qty), 75, y, { align: 'right' });
+      y += 4;
+      if (y > 200) { doc.addPage(); y = 10; }
+    }
+
+    doc.line(5, y, 75, y); y += 5;
+    doc.setFontSize(10);
+    doc.text('TOTAL:', 5, y);
+    doc.text(money(bill.total) + ' ' + cur, 75, y, { align: 'right' });
+    y += 6;
+    doc.setFontSize(7);
+    doc.text('Thank you!', 40, y, { align: 'center' });
+
+    doc.save('Bill-' + bill.number + '.pdf');
+    showToast('PDF downloaded');
+  } catch (err) {
+    showToast('PDF error: ' + err.message);
+  }
+}
+
+/* ============ DRIVER ============ */
+function renderDriverDeliveries() {
+  var client = state.client;
+  if (!client) return;
+  var allBills = getBills(client.id);
+  var bills = [];
+  for (var i = 0; i < allBills.length; i++) {
+    var b = allBills[i];
+    if (!b.delivery) continue;
+    if (b.driverName && b.driverName !== state.driverName) continue;
+    bills.push(b);
+  }
+
+  var container = $('driverBody');
+  if (!bills.length) {
+    container.innerHTML = '<p class="empty">No deliveries assigned</p>';
+    return;
+  }
+
+  var html = '';
+  for (var j = 0; j < bills.length; j++) {
+    var bill = bills[j];
+    var statusActions = '';
+    if (bill.status === 'Pending') {
+      statusActions = '<button class="btn btn-primary btn-sm" data-pickup="' + bill.number + '">✅ Mark Picked Up</button>';
+    } else if (bill.status === 'Picked Up') {
+      statusActions = '<button class="btn btn-primary btn-sm" data-deliver="' + bill.number + '">📦 Mark Delivered</button>';
+    } else {
+      statusActions = '<span class="badge">✅ Delivered</span>';
+    }
+    html += '<div class="driver-card">' +
+      '<div class="driver-card-head">' +
+        '<strong>Bill #' + bill.number + '</strong>' +
+        '<span class="badge">' + esc(bill.status || 'Pending') + '</span>' +
+      '</div>' +
+      '<div style="font-weight:600;margin-bottom:4px">' + esc(bill.customer.name) + '</div>' +
+      '<div class="text-muted">📞 ' + esc(bill.customer.phone || '—') + '</div>' +
+      '<div class="text-muted">📍 ' + esc(bill.customer.address || 'No address') + '</div>' +
+      '<div class="text-muted">🕒 ' + esc(bill.timeSlot || '—') + '</div>' +
+      '<div style="margin-top:10px;font-weight:700">Total: ' + money(bill.total) + ' ' + esc(bill.currency || 'BHD') + '</div>' +
+      '<div style="margin-top:10px">' + statusActions + '</div>' +
+    '</div>';
+  }
+  container.innerHTML = html;
+
+  var pickups = container.querySelectorAll('[data-pickup]');
+  for (var k = 0; k < pickups.length; k++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        updateBillStatus(parseInt(btn.getAttribute('data-pickup'), 10), 'Picked Up');
+      });
+    })(pickups[k]);
+  }
+  var delivers = container.querySelectorAll('[data-deliver]');
+  for (var m = 0; m < delivers.length; m++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        updateBillStatus(parseInt(btn.getAttribute('data-deliver'), 10), 'Delivered');
+      });
+    })(delivers[m]);
+  }
+}
+
+function updateBillStatus(billNo, status) {
+  var bills = getBills(state.client.id);
+  for (var i = 0; i < bills.length; i++) {
+    if (bills[i].number === billNo) {
+      bills[i].status = status;
+      break;
+    }
+  }
+  setBills(state.client.id, bills);
+  renderDriverDeliveries();
+  showToast('Updated to ' + status);
+}
+
+/* ============ INIT ============ */
+showScreen('login');
+
+})();
+</script>
+</body>
+</html>
