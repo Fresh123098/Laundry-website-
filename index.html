@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1f3a">
+<title>Laundry Manager — Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ============ RESET & TOKENS ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-primary:#0b1f3a;--c-primary-600:#153a63;--c-primary-500:#1e4a7a;
+  --c-accent:#f59e0b;--c-accent-600:#d97706;
+  --c-success:#10b981;--c-success-bg:#d1fae5;
+  --c-danger:#ef4444;--c-danger-bg:#fee2e2;
+  --c-warn:#f59e0b;--c-warn-bg:#fef3c7;
+  --c-info:#3b82f6;--c-info-bg:#dbeafe;
+  --c-bg:#f5f7fa;--c-surface:#fff;--c-surface-2:#f8fafc;
+  --c-border:#e2e8f0;--c-border-2:#cbd5e1;
+  --c-text:#0f172a;--c-text-muted:#64748b;--c-text-soft:#94a3b8;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;
+  --sh-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --sh-md:0 4px 16px rgba(15,23,42,.06),0 2px 4px rgba(15,23,42,.04);
+  --sh-lg:0 20px 40px -12px rgba(15,23,42,.15);
+  --grad-primary:linear-gradient(135deg,#0b1f3a 0%,#1e4a7a 100%);
+  --grad-accent:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+  --ease:cubic-bezier(.4,0,.2,1);
+  --header-h:56px;
+}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.5;
+  overflow:hidden;-webkit-tap-highlight-color:transparent;
+}
+body[dir="rtl"]{font-family:'Inter','Segoe UI',Tahoma,sans-serif}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+input,select,textarea{border:1.5px solid var(--c-border);border-radius:var(--r-sm);padding:10px 12px;background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c-primary-500);box-shadow:0 0 0 3px rgba(30,74,122,.12)}
+img{max-width:100%;display:block}
+.hidden{display:none!important}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:var(--r-sm);font-weight:600;font-size:.88rem;transition:all .15s var(--ease);white-space:nowrap}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-primary{background:var(--grad-primary);color:#fff}
+.btn-primary:hover:not(:disabled){opacity:.92}
+.btn-accent{background:var(--grad-accent);color:#fff}
+.btn-accent:hover:not(:disabled){opacity:.92}
+.btn-outline{background:#fff;border:1.5px solid var(--c-border-2);color:var(--c-primary)}
+.btn-outline:hover:not(:disabled){border-color:var(--c-primary);background:var(--c-surface-2)}
+.btn-danger{background:var(--c-danger);color:#fff}
+.btn-ghost{color:var(--c-text-muted)}
+.btn-ghost:hover{background:var(--c-surface-2);color:var(--c-text)}
+.btn-sm{padding:7px 12px;font-size:.78rem}
+.btn-icon{padding:8px;width:36px;height:36px}
+
+/* ============ FORM ============ */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px}
+.field small{display:block;color:var(--c-text-muted);font-size:.75rem;margin-top:4px}
+.field-row{display:flex;gap:8px;margin-bottom:10px}
+.field-row input{flex:1}
+
+/* ============ CARDS ============ */
+.card{background:#fff;border-radius:var(--r-md);border:1px solid var(--c-border);box-shadow:var(--sh-sm);overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h3{font-size:.95rem;font-weight:700}
+.card-body{padding:0}
+
+/* ============ BADGES & PILLS ============ */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700}
+.pill-success{background:var(--c-success-bg);color:#065f46}
+.pill-warn{background:var(--c-warn-bg);color:#92400e}
+.pill-danger{background:var(--c-danger-bg);color:#991b1b}
+.pill-info{background:var(--c-info-bg);color:#1e40af}
+.pill-neutral{background:var(--c-surface-2);color:var(--c-text-muted)}
+
+/* ============ TOAST ============ */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--c-primary);color:#fff;padding:12px 22px;border-radius:var(--r-md);font-weight:600;font-size:.88rem;opacity:0;pointer-events:none;transition:all .3s var(--ease);z-index:9999;box-shadow:var(--sh-lg);max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--c-success)}
+.toast.error{background:var(--c-danger)}
+
+/* ============ AUTH SCREEN ============ */
+.auth-screen{height:100vh;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 20% 20%,rgba(30,74,122,.2),transparent 50%),radial-gradient(circle at 80% 80%,rgba(245,158,11,.15),transparent 50%),linear-gradient(135deg,#0b1f3a,#1a3a5f)}
+.auth-card{background:#fff;width:100%;max-width:420px;border-radius:var(--r-xl);padding:32px 28px;box-shadow:0 24px 60px rgba(0,0,0,.3);position:relative;overflow:hidden}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--grad-accent)}
+.auth-logo{width:60px;height:60px;border-radius:16px;background:var(--grad-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:30px}
+.auth-title{text-align:center;font-size:1.35rem;font-weight:800;margin-bottom:4px}
+.auth-sub{text-align:center;color:var(--c-text-muted);font-size:.85rem;margin-bottom:22px}
+.auth-lang{position:absolute;top:12px;right:12px;background:var(--c-surface-2);border:1px solid var(--c-border);padding:5px 11px;border-radius:20px;font-size:.78rem;font-weight:600;color:var(--c-text-muted)}
+body[dir="rtl"] .auth-lang{right:auto;left:12px}
+.auth-tabs{display:flex;gap:4px;padding:4px;background:var(--c-surface-2);border-radius:var(--r-md);margin-bottom:22px}
+.auth-tab{flex:1;padding:9px;border-radius:var(--r-sm);font-weight:600;font-size:.83rem;color:var(--c-text-muted);transition:all .15s}
+.auth-tab.active{background:#fff;color:var(--c-primary);box-shadow:var(--sh-sm)}
+
+/* ============ APP SHELL ============ */
+.shell{height:100vh;display:none;flex-direction:column;overflow:hidden}
+.shell.active{display:flex}
+.app-header{flex-shrink:0;background:var(--grad-primary);color:#fff;padding:0 20px;height:var(--header-h);display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(11,31,58,.2);z-index:50}
+.app-header .brand{font-weight:800;font-size:1.05rem;letter-spacing:-.02em}
+.header-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.78rem;font-weight:600;transition:background .15s}
+.header-btn:hover{background:rgba(255,255,255,.22)}
+.spacer{flex:1}
+
+/* ============ MASTER LAYOUT ============ */
+.master-body{flex:1;min-height:0;display:grid;grid-template-columns:320px 1fr}
+.master-sidebar{background:#fff;border-inline-end:1px solid var(--c-border);overflow-y:auto;padding:16px}
+.master-content{overflow-y:auto;padding:24px}
+.sidebar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sidebar-head h2{font-size:1rem;font-weight:800}
+.sidebar-search{position:relative;margin-bottom:12px}
+.sidebar-search input{padding-inline-start:34px;font-size:.85rem;background:var(--c-surface-2)}
+.sidebar-search::before{content:'🔍';position:absolute;inset-inline-start:10px;top:50%;transform:translateY(-50%);font-size:.85rem;opacity:.5;pointer-events:none}
+.client-item{padding:12px;border-radius:var(--r-md);border:1.5px solid transparent;background:var(--c-surface-2);cursor:pointer;transition:all .15s;margin-bottom:6px}
+.client-item:hover{background:#fff;border-color:var(--c-border-2);box-shadow:var(--sh-sm)}
+.client-item.active{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.client-item.active .client-meta{color:rgba(255,255,255,.75)}
+.client-item.active .pill{background:rgba(255,255,255,.2);color:#fff}
+.client-name{font-weight:700;font-size:.9rem;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.client-meta{font-size:.72rem;color:var(--c-text-muted)}
+.empty-state{text-align:center;padding:32px 16px;color:var(--c-text-muted);font-size:.88rem}
+.empty-icon{font-size:2.5rem;opacity:.4;margin-bottom:8px}
+
+/* ============ CONTENT HEADER ============ */
+.content-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.content-title{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;margin-bottom:2px}
+.content-sub{color:var(--c-text-muted);font-size:.85rem}
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;overflow-x:auto;border-bottom:1px solid var(--c-border);scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:10px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--c-text-muted);font-weight:600;font-size:.85rem;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--c-text)}
+.tab-btn.active{color:var(--c-primary);border-bottom-color:var(--c-accent)}
+
+/* ============ STATS ============ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;padding:16px;border-radius:var(--r-md);border:1px solid var(--c-border);box-shadow:var(--sh-sm)}
+.stat-label{font-size:.72rem;font-weight:700;color:var(--c-text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.stat-value{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.stat-sub{font-size:.75rem;color:var(--c-text-muted);margin-top:4px}
+
+/* ============ LIST ROW ============ */
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--c-border);cursor:pointer;transition:background .1s}
+.list-row:last-child{border-bottom:none}
+.list-row:hover{background:var(--c-surface-2)}
+.list-row-info{flex:1;min-width:0}
+.list-row-title{font-weight:600;font-size:.88rem;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-row-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.74rem;color:var(--c-text-muted);align-items:center}
+
+/* ============ CATALOGUE GRID ============ */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.cat-card{background:#fff;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--c-border);box-shadow:var(--sh-sm);transition:all .2s var(--ease);position:relative}
+.cat-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.cat-img{width:100%;height:120px;object-fit:cover;background:var(--c-surface-2)}
+.cat-body{padding:10px 12px}
+.cat-name{font-weight:700;font-size:.85rem;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-prices{font-size:.72rem;color:var(--c-text-muted);display:flex;flex-direction:column;gap:1px}
+.cat-prices b{color:var(--c-primary-500)}
+.cat-actions{position:absolute;top:6px;inset-inline-end:6px;display:flex;gap:4px}
+.cat-btn{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.95);font-size:.72rem;box-shadow:var(--sh-sm);display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.cat-btn:hover{transform:scale(1.1)}
+
+/* ============ POS LAYOUT ============ */
+.pos-body{flex:1;min-height:0;display:grid;grid-template-columns:1fr 380px}
+.pos-main{overflow-y:auto;padding:20px}
+.pos-toolbar{flex-shrink:0;background:#fff;padding:10px 20px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--c-border)}
+.pos-search{flex:1;position:relative;max-width:400px}
+.pos-search input{padding-inline-start:36px;background:var(--c-surface-2);font-size:.88rem}
+.pos-search::before{content:'🔍';position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);opacity:.5;pointer-events:none}
+.pos-sidebar{background:#fff;border-inline-start:1px solid var(--c-border);display:flex;overflow:hidden}
+.pos-sidebar-inner{flex:1;display:flex;flex-direction:column;padding:16px;min-height:0}
+.pos-fields{flex-shrink:0}
+.pos-cart-list{flex:1;min-height:0;overflow-y:auto;margin:12px 0;padding-inline-end:4px}
+.pos-footer{flex-shrink:0;padding-top:12px;border-top:1px solid var(--c-border)}
+.cat-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-pill{padding:7px 14px;border-radius:20px;background:var(--c-surface-2);border:1.5px solid var(--c-border);font-weight:600;font-size:.82rem;white-space:nowrap;color:var(--c-text-muted);transition:all .15s}
+.cat-pill:hover{border-color:var(--c-primary-500);color:var(--c-primary)}
+.cat-pill.active{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.item-tile{background:#fff;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--c-border);box-shadow:var(--sh-sm);transition:all .15s var(--ease);position:relative;cursor:pointer}
+.item-tile:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.item-tile:active{transform:scale(.98)}
+.item-tile img{width:100%;height:110px;object-fit:cover;background:var(--c-surface-2)}
+.item-body{padding:8px 10px}
+.item-title{font-weight:700;font-size:.8rem;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-price{color:var(--c-primary);font-weight:700;font-size:.85rem}
+.item-edit{position:absolute;top:6px;inset-inline-end:6px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.95);font-size:.72rem;box-shadow:var(--sh-sm);display:flex;align-items:center;justify-content:center}
+
+/* ============ CART ============ */
+.cart-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--c-border)}
+.cart-info{flex:1;min-width:0}
+.cart-name{font-weight:600;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cart-svc{font-size:.7rem;color:var(--c-text-muted)}
+.cart-qty{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.qty-btn{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--c-border-2);background:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.qty-btn:hover{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.cart-price{font-weight:700;font-size:.82rem;min-width:55px;text-align:end}
+.total-line{display:flex;justify-content:space-between;font-size:.82rem;color:var(--c-text-muted);margin-bottom:5px}
+.total-line.grand{font-size:1.05rem;font-weight:800;color:var(--c-primary);padding-top:8px;border-top:2px solid var(--c-border);margin-top:6px}
+
+/* ============ DRIVER ============ */
+.driver-body{flex:1;overflow-y:auto;padding:20px;max-width:900px;margin:0 auto;width:100%}
+.driver-card{background:#fff;border-radius:var(--r-md);padding:14px;margin-bottom:12px;border:1px solid var(--c-border);box-shadow:var(--sh-sm)}
+.driver-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+
+/* ============ MODAL ============ */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);z-index:2000;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal.show{display:flex}
+.modal-card{background:#fff;border-radius:var(--r-lg);padding:24px;max-width:520px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto;margin:auto;box-shadow:var(--sh-lg)}
+.modal-card.receipt{max-width:400px}
+.modal-card.wide{max-width:720px}
+.modal-card h2{font-size:1.15rem;font-weight:800;margin-bottom:16px}
+.modal-card h3{font-size:.95rem;font-weight:700;margin-bottom:10px}
+.modal-actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.modal-actions .btn{flex:1;min-width:90px}
+
+/* ============ SERVICE OPTIONS ============ */
+.svc-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--c-border);border-radius:var(--r-sm);cursor:pointer;margin-bottom:6px;transition:all .15s}
+.svc-option:hover{background:var(--c-surface-2)}
+.svc-option:has(input:checked){border-color:var(--c-primary);background:var(--c-surface-2)}
+.svc-option input{width:auto;flex-shrink:0}
+
+/* ============ MOBILE ============ */
+.fab{position:fixed;bottom:20px;inset-inline-end:20px;width:56px;height:56px;border-radius:50%;background:var(--grad-primary);color:#fff;font-size:1.5rem;box-shadow:0 8px 24px rgba(11,31,58,.4);z-index:900;display:none;align-items:center;justify-content:center;position:fixed}
+.fab-badge{position:absolute;top:-2px;inset-inline-end:-2px;background:var(--c-accent);color:#fff;border-radius:50%;width:20px;height:20px;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:999;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.show{opacity:1;pointer-events:auto}
+.mobile-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:20px;z-index:1000;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s var(--ease);display:none}
+.mobile-sheet.open{transform:translateY(0)}
+
+@media (max-width:900px){
+  .master-body{grid-template-columns:1fr;display:block;overflow-y:auto}
+  .master-sidebar{max-height:none;overflow-y:visible;border-inline-end:none;border-bottom:1px solid var(--c-border)}
+  .master-content{overflow-y:visible;padding:16px}
+  .pos-body{grid-template-columns:1fr}
+  .pos-sidebar{display:none}
+  .pos-main{padding:14px}
+  .fab{display:flex}
+  .mobile-sheet{display:block}
+  .item-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+  .app-header .brand{font-size:.95rem}
+  .header-btn{padding:5px 9px;font-size:.72rem}
+}
+@media (min-width:901px){
+  .fab,.mobile-sheet,.overlay{display:none!important}
+}
+
+/* ============ PRINT ============ */
+@media print{
+  body *{visibility:hidden}
+  .printable,.printable *{visibility:visible}
+  .printable{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff}
+  .modal{position:static!important;background:#fff!important;padding:0!important;display:block!important;overflow:visible!important}
+  .modal-card{box-shadow:none!important;max-height:none!important;max-width:100%!important;overflow:visible!important;margin:0!important}
+  .no-print{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ========== AUTH ========== -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <button class="auth-lang" id="authLangBtn" type="button" onclick="App.toggleLanguage()">🌐 العربية</button>
+    <div class="auth-logo">🧺</div>
+    <div class="auth-title" id="authTitle">Laundry Manager</div>
+    <div class="auth-sub" id="authSub">Sign in to your workspace</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" type="button" onclick="App.switchAuthTab('master')" id="tabMaster">Master</button>
+      <button class="auth-tab" type="button" onclick="App.switchAuthTab('client')" id="tabClient">Shop</button>
+      <button class="auth-tab" type="button" onclick="App.switchAuthTab('driver')" id="tabDriver">Driver</button>
+    </div>
+
+    <div id="formMaster">
+      <div class="field">
+        <label>Master Password</label>
+        <input type="password" id="masterPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')App.masterLogin()">
+      </div>
+      <button class="btn btn-primary btn-block" type="button" onclick="App.masterLogin()">Sign In</button>
+      <div style="text-align:center;margin-top:12px">
+        <span style="color:var(--c-primary-500);font-weight:600;font-size:.85rem;cursor:pointer;text-decoration:underline" onclick="App.showForgot()">Forgot password?</span>
+      </div>
+    </div>
+
+    <div id="formClient" class="hidden">
+      <div class="field">
+        <label>Shop ID</label>
+        <input type="text" id="clientShopId" placeholder="e.g., abc123">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="clientPass" placeholder="Owner or staff password" onkeydown="if(event.key==='Enter')App.clientLogin()">
+        <small>Owner → full access · Staff → POS only</small>
+      </div>
+      <button class="btn btn-primary btn-block" type="button" onclick="App.clientLogin()">Sign In</button>
+    </div>
+
+    <div id="formDriver" class="hidden">
+      <div class="field">
+        <label>Shop ID</label>
+        <input type="text" id="driverShopId" placeholder="Shop ID">
+      </div>
+      <div class="field">
+        <label>Driver Name</label>
+        <input type="text" id="driverNameInput" placeholder="e.g., Fazal">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="driverPass" placeholder="Driver password" onkeydown="if(event.key==='Enter')App.driverLogin()">
+      </div>
+      <button class="btn btn-primary btn-block" type="button" onclick="App.driverLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MASTER ========== -->
+<div class="shell" id="masterApp">
+  <header class="app-header">
+    <span class="brand">🧺 Master Console</span>
+    <span class="header-btn" id="syncBadge" style="cursor:default"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-inline-end:5px"></span><span id="syncText">Local</span></span>
+    <div class="spacer"></div>
+    <button class="header-btn" type="button" onclick="App.openMasterSettings()" title="Settings">⚙️</button>
+    <button class="header-btn" type="button" id="masterLangBtn" onclick="App.toggleLanguage()">🌐</button>
+    <button class="header-btn" type="button" onclick="App.logout()" title="Logout">🚪</button>
+  </header>
+  <div class="master-body">
+    <aside class="master-sidebar">
+      <div class="sidebar-head">
+        <h2 id="clientsTitle">Clients</h2>
+        <button class="btn btn-primary btn-sm" type="button" onclick="App.openClientEditor()">+ New</button>
+      </div>
+      <div class="sidebar-search">
+        <input type="text" id="clientSearch" placeholder="Search clients..." oninput="App.renderClientList()">
+      </div>
+      <div id="clientList"></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--c-border)">
+        <button class="btn btn-outline btn-block btn-sm" type="button" onclick="App.openBackupModal()">💾 Backup & Restore</button>
+      </div>
+    </aside>
+    <main class="master-content" id="masterContent"></main>
+  </div>
+</div>
+
+<!-- ========== CLIENT POS ========== -->
+<div class="shell" id="clientApp">
+  <header style="flex-shrink:0;background:var(--grad-primary);color:#fff;padding:16px 20px;text-align:center;position:relative">
+    <div style="position:relative;z-index:1">
+      <img id="shopLogo" src="" alt="" style="max-height:60px;margin:0 auto 8px;display:none">
+      <div id="shopNameText" style="font-size:1.5rem;font-weight:800;letter-spacing:-.02em;text-transform:uppercase">Fresh & Clean</div>
+      <div style="font-size:.88rem;opacity:.85;margin-top:2px">
+        <span id="shopTag">Laundry</span>
+        <span id="staffBadge" class="pill pill-warn hidden" style="margin-inline-start:6px">Staff</span>
+      </div>
+    </div>
+    <div style="position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:6px;z-index:2">
+      <button class="header-btn" type="button" id="clientLangBtn" onclick="App.toggleLanguage()">🌐</button>
+      <button class="header-btn" type="button" id="adminBtn">⚙️</button>
+    </div>
+  </header>
+
+  <div class="pos-toolbar">
+    <div class="pos-search">
+      <input type="text" id="posSearch" placeholder="Search items..." oninput="App.renderPosItems()">
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:var(--c-text-muted);cursor:pointer;white-space:nowrap">
+      <span id="quickAddLabel">Quick Add</span>
+      <div id="quickAddSwitch" onclick="App.toggleQuickAdd()" style="width:38px;height:22px;background:var(--c-border-2);border-radius:11px;position:relative;transition:background .2s">
+        <div id="quickAddKnob" style="position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+      </div>
+    </label>
+  </div>
+
+  <div class="pos-body">
+    <main class="pos-main">
+      <div class="cat-tabs" id="posCatTabs"></div>
+      <div class="item-grid" id="posItemsGrid"></div>
+    </main>
+    <aside class="pos-sidebar">
+      <div class="pos-sidebar-inner">
+        <div class="pos-fields">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <strong style="font-size:.95rem" id="orderTitle">Current Order</strong>
+            <span class="pill pill-neutral" id="posCartCount">0</span>
+          </div>
+          <div class="field"><input type="text" id="custName" placeholder="Customer name"></div>
+          <div class="field"><input type="tel" id="custPhone" placeholder="Phone"></div>
+          <div class="field"><input type="text" id="custAddress" placeholder="Address (optional)"></div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;margin-bottom:8px;cursor:pointer">
+            <input type="checkbox" id="markDelivery" style="width:auto" onchange="App.onDeliveryToggle('desktop')"> Mark for delivery
+          </label>
+          <div id="deliveryFields" class="hidden">
+            <div class="field"><select id="driverSelect"></select></div>
+            <div class="field"><select id="timeSlotSelect"></select></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;margin-bottom:8px;cursor:pointer">
+            <input type="checkbox" id="applyDiscount" style="width:auto" onchange="App.onDiscountToggle('desktop')"> Apply discount (%)
+          </label>
+          <div id="discountBox" class="hidden" style="margin-bottom:8px">
+            <input type="number" id="discountPercent" min="0" max="100" value="0" placeholder="% off" oninput="App.syncDiscount('desktop')">
+          </div>
+        </div>
+        <div class="pos-cart-list" id="posCartList"></div>
+        <div class="pos-footer">
+          <div class="total-line"><span>Subtotal</span><span id="posSubtotal">0.000</span></div>
+          <div class="total-line hidden" id="posDiscountLine"><span>Discount</span><span id="posDiscount">0.000</span></div>
+          <div class="total-line grand"><span>Total</span><span id="posTotal">0.000</span></div>
+          <button class="btn btn-primary btn-block" type="button" style="margin-top:10px" onclick="App.generateBill()">🧾 Generate Bill</button>
+          <button class="btn btn-outline btn-block btn-sm" type="button" style="margin-top:6px" onclick="App.clearCart()">Clear</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <button class="fab" type="button" onclick="App.openMobileCart()">🧺<span class="fab-badge" id="fabBadge" style="display:none">0</span></button>
+  <div class="overlay" id="posOverlay" onclick="App.closeMobileCart()"></div>
+  <div class="mobile-sheet" id="mobileCart">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <strong>Current Order</strong>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="App.closeMobileCart()">✕</button>
+    </div>
+    <div class="field"><input type="text" id="custNameM" placeholder="Customer name"></div>
+    <div class="field"><input type="tel" id="custPhoneM" placeholder="Phone"></div>
+    <div class="field"><input type="text" id="custAddressM" placeholder="Address (optional)"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;margin-bottom:8px;cursor:pointer">
+      <input type="checkbox" id="markDeliveryM" style="width:auto" onchange="App.onDeliveryToggle('mobile')"> Mark for delivery
+    </label>
+    <div id="deliveryFieldsM" class="hidden">
+      <div class="field"><select id="driverSelectM"></select></div>
+      <div class="field"><select id="timeSlotSelectM"></select></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;margin-bottom:8px;cursor:pointer">
+      <input type="checkbox" id="applyDiscountM" style="width:auto" onchange="App.onDiscountToggle('mobile')"> Apply discount (%)
+    </label>
+    <div id="discountBoxM" class="hidden" style="margin-bottom:8px">
+      <input type="number" id="discountPercentM" min="0" max="100" value="0" placeholder="% off" oninput="App.syncDiscount('mobile')">
+    </div>
+    <div id="posCartListM" style="max-height:250px;overflow-y:auto"></div>
+    <div class="total-line" style="margin-top:10px"><span>Subtotal</span><span id="posSubtotalM">0.000</span></div>
+    <div class="total-line hidden" id="posDiscountLineM"><span>Discount</span><span id="posDiscountM">0.000</span></div>
+    <div class="total-line grand"><span>Total</span><span id="posTotalM">0.000</span></div>
+    <button class="btn btn-primary btn-block" type="button" style="margin-top:12px" onclick="App.generateBill()">🧾 Generate Bill</button>
+  </div>
+</div>
+
+<!-- ========== DRIVER ========== -->
+<div class="shell" id="driverApp">
+  <header style="flex-shrink:0;background:var(--grad-primary);color:#fff;padding:16px 20px;text-align:center;position:relative">
+    <div style="font-size:1.3rem;font-weight:800" id="driverShopName">Shop</div>
+    <div style="font-size:.88rem;opacity:.85;margin-top:2px" id="driverNameDisplay"></div>
+    <div style="position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:6px">
+      <button class="header-btn" type="button" id="driverLangBtn" onclick="App.toggleLanguage()">🌐</button>
+      <button class="header-btn" type="button" onclick="App.driverLogout()">🚪</button>
+    </div>
+  </header>
+  <div class="driver-body">
+    <div class="tab-bar">
+      <button class="tab-btn active" type="button" onclick="App.switchDriverTab('pickups')" id="dTabPickups">📦 Pickups</button>
+      <button class="tab-btn" type="button" onclick="App.switchDriverTab('deliveries')" id="dTabDeliveries">🚚 Deliveries</button>
+    </div>
+    <div id="driverPickups"></div>
+    <div id="driverDeliveries" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Forgot password -->
+<div class="modal" id="forgotModal">
+  <div class="modal-card">
+    <h2>Reset Master Password</h2>
+    <p style="color:var(--c-text-muted);font-size:.85rem;margin-bottom:14px">Enter the WhatsApp number set in Settings.</p>
+    <div class="field"><label>WhatsApp Number</label><input id="recoveryWa" placeholder="+973..."></div>
+    <div class="field"><label>New Password</label><input type="password" id="recoveryNewPass"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.resetMasterPassword()">Reset</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('forgotModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Client editor -->
+<div class="modal" id="clientEditorModal">
+  <div class="modal-card">
+    <h2 id="clientEditorTitle">Add Client</h2>
+    <div class="field"><label>Shop Name</label><input id="ceShopName"></div>
+    <div class="field"><label>Address</label><input id="ceAddress"></div>
+    <div class="field"><label>Logo</label><input type="file" id="ceLogo" accept="image/*"><small>Leave empty for text-only logo</small></div>
+    <div class="field"><label>Owner Password</label><input type="password" id="cePassword"></div>
+    <div class="field"><label>Staff Password (POS only)</label><input type="password" id="ceStaffPassword"></div>
+    <div class="field"><label>Expiry Date</label><input type="date" id="ceExpiry"></div>
+    <div class="field"><label>Currency</label><input id="ceCurrency" placeholder="BHD"></div>
+    <div class="field"><label>Time Slots (comma-separated)</label><input id="ceTimeSlots" placeholder="8-9 AM,9-10 AM,..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.saveClientEditor()">Save</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('clientEditorModal')">Cancel</button>
+    </div>
+    <button class="btn btn-outline btn-block btn-sm hidden" id="ceDeleteBtn" type="button" style="margin-top:10px;color:var(--c-danger);border-color:var(--c-danger)" onclick="App.deleteClient()">Delete Client</button>
+  </div>
+</div>
+
+<!-- Item editor -->
+<div class="modal" id="itemEditorModal">
+  <div class="modal-card">
+    <h2 id="itemEditorTitle">Add Item</h2>
+    <div class="field"><label>Item Name</label><input id="ieName"></div>
+    <div class="field"><label>Category</label><input id="ieCategory" placeholder="e.g., Traditional"></div>
+    <div class="field"><label>Image</label><input type="file" id="ieImageFile" accept="image/*"><input type="url" id="ieImageUrl" placeholder="or paste URL" style="margin-top:6px"></div>
+    <hr style="border:none;border-top:1px solid var(--c-border);margin:14px 0">
+    <div class="field"><label>Wash & Iron Price</label><input type="number" step="0.001" id="iePriceWash"></div>
+    <div class="field"><label>Dry Clean Price</label><input type="number" step="0.001" id="iePriceDry"></div>
+    <div class="field"><label>Iron Only Price</label><input type="number" step="0.001" id="iePriceIron"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.saveItemEditor()">Save</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('itemEditorModal')">Cancel</button>
+    </div>
+    <button class="btn btn-outline btn-block btn-sm hidden" id="ieDeleteBtn" type="button" style="margin-top:10px;color:var(--c-danger);border-color:var(--c-danger)" onclick="App.deleteItem()">Delete Item</button>
+  </div>
+</div>
+
+<!-- Service picker -->
+<div class="modal" id="serviceModal">
+  <div class="modal-card">
+    <h2>Add <span id="serviceItemName"></span></h2>
+    <div id="serviceOptions" style="margin:14px 0"></div>
+    <div class="field"><label>Price</label><input type="number" step="0.001" id="servicePrice"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.confirmService()">Add to Order</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('serviceModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bill viewer -->
+<div class="modal" id="billViewer">
+  <div class="modal-card receipt" id="billViewerBody"></div>
+</div>
+
+<!-- Master settings -->
+<div class="modal" id="masterSettingsModal">
+  <div class="modal-card">
+    <h2>Master Settings</h2>
+    <div class="field"><label>WhatsApp Number</label><input id="msWa"></div>
+    <div class="field"><label>New Master Password</label><input type="password" id="msNewPass" placeholder="Leave blank to keep current"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.saveMasterSettings()">Save</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('masterSettingsModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup -->
+<div class="modal" id="backupModal">
+  <div class="modal-card">
+    <h2>Backup & Restore</h2>
+    <p style="color:var(--c-text-muted);font-size:.85rem;margin-bottom:16px">Export all data as JSON, or restore from a backup file.</p>
+    <button class="btn btn-primary btn-block" type="button" onclick="App.exportBackup()">⬇️ Export Backup</button>
+    <button class="btn btn-outline btn-block" type="button" style="margin-top:8px" onclick="document.getElementById('backupFile').click()">⬆️ Restore from File</button>
+    <input type="file" id="backupFile" accept=".json" hidden onchange="App.importBackup(event)">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-block" type="button" onclick="App.closeModal('backupModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment -->
+<div class="modal" id="paymentModal">
+  <div class="modal-card">
+    <h2>Mark as Paid</h2>
+    <p style="color:var(--c-text-muted);font-size:.85rem;margin-bottom:12px">Bill #<span id="payBillNo"></span></p>
+    <div class="field"><label>Payment Method</label>
+      <select id="payMethod">
+        <option value="Cash">Cash</option>
+        <option value="Benefit Pay">Benefit Pay</option>
+        <option value="Card">Card</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.confirmPayment()">Confirm</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('paymentModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin login -->
+<div class="modal" id="adminLoginModal">
+  <div class="modal-card">
+    <h2>🔐 Admin Login</h2>
+    <div class="field"><label>Owner Password</label>
+      <input type="password" id="adminPassInput" onkeydown="if(event.key==='Enter')App.confirmAdminLogin()">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.confirmAdminLogin()">Login</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('adminLoginModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="modal" id="confirmModal">
+  <div class="modal-card" style="max-width:380px">
+    <h2 id="confirmTitle">Confirm</h2>
+    <p id="confirmMsg" style="color:var(--c-text-muted);font-size:.9rem;margin-bottom:16px"></p>
+    <div class="modal-actions">
+      <button class="btn btn-danger" type="button" id="confirmYes">Confirm</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('confirmModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   LAUNDRY MANAGER — PROFESSIONAL EDITION
+   Single-file app: master dashboard, client POS, driver portal
+   ================================================================ */
+(function(){
+'use strict';
+
+/* ---------- CONSTANTS ---------- */
+const KEYS = {
+  master:  'lm_master',
+  clients: 'lm_clients',
+  lang:    'lm_lang',
+  clientData: id => 'lm_c_' + id
+};
+const DEFAULT_MASTER = { password: 'master123', whatsapp: '+973 36817742', firebaseConfig: null };
+const SERVICES = [
+  { key: 'washIron', label: 'Wash & Iron' },
+  { key: 'dryClean', label: 'Dry Clean' },
+  { key: 'iron',     label: 'Iron Only' }
+];
+const DEFAULT_ITEMS = [
+  { name:'Abaya',       category:'Traditional', washIron:2,    dryClean:2.5,  iron:1   },
+  { name:'Silk Abaya',  category:'Traditional', washIron:3,    dryClean:3.5,  iron:1.5 },
+  { name:'Daraa',       category:'Traditional', washIron:1.8,  dryClean:2.2,  iron:0.9 },
+  { name:'Hijab',       category:'Traditional', washIron:0.6,  dryClean:0.8,  iron:0.3 },
+  { name:'Thawb',       category:'Summer',      washIron:2,    dryClean:2.5,  iron:1   },
+  { name:'Bed Sheet',   category:'Home',        washIron:1,    dryClean:1.5,  iron:0.5 },
+  { name:'Pillow',      category:'Home',        washIron:0.8,  dryClean:1.2,  iron:0.4 },
+  { name:'Jeans',       category:'Western',     washIron:1.8,  dryClean:2.2,  iron:1   },
+  { name:'Shirt',       category:'Western',     washIron:1.5,  dryClean:2,    iron:0.8 },
+  { name:'Suit',        category:'Western',     washIron:4,    dryClean:5,    iron:2   }
+];
+
+/* ---------- STATE ---------- */
+const State = {
+  mode: null,
+  master: { selectedClientId: null, activeTab: 'overview' },
+  client: {
+    client: null, isAdmin: false, isStaff: false,
+    cart: [], activeCategory: 'all', quickAdd: false,
+    pendingItemId: null, editingItemId: null,
+    viewingBill: null, viewingClient: null,
+    pendingPaymentNo: null, editingClientId: null, editingBillNo: null
+  },
+  driver: { client: null, name: null, activeTab: 'pickups' }
+};
+
+/* ---------- HELPERS ---------- */
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const num = (v, fallback = 0) => { const n = parseFloat(v); return isNaN(n) ? fallback : n; };
+
+function safeParse(s, fb) { try { return JSON.parse(s); } catch { return fb; } }
+
+function toast(msg, type) {
+  const el = $('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'toast'; }, 2600);
+}
+
+function formatMoney(amount, currency) {
+  return num(amount).toFixed(3) + ' ' + (currency || 'BHD');
+}
+
+function formatDateTime(iso) {
+  try {
+    return new Date(iso).toLocaleString(App.getLang() === 'ar' ? 'ar-BH' : 'en-GB', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return iso; }
+}
+
+function formatDate(iso) {
+  try { return new Date(iso).toLocaleDateString(App.getLang() === 'ar' ? 'ar-BH' : 'en-GB', { year:'numeric', month:'short', day:'numeric' }); }
+  catch { return iso; }
+}
+
+function placeholderImg(name) {
+  return 'https://placehold.co/300x200/0b1f3a/ffffff?text=' + encodeURIComponent(String(name || 'Item').slice(0,20));
+}
+
+/* ---------- STORAGE ---------- */
+const Storage = {
+  getMaster() {
+    return Object.assign({}, DEFAULT_MASTER, safeParse(localStorage.getItem(KEYS.master), {}));
+  },
+  saveMaster(m) {
+    try { localStorage.setItem(KEYS.master, JSON.stringify(m)); } catch(e) { toast('Storage full!', 'error'); }
+  },
+  getClients() {
+    return safeParse(localStorage.getItem(KEYS.clients), []);
+  },
+  saveClients(arr) {
+    try { localStorage.setItem(KEYS.clients, JSON.stringify(arr)); } catch(e) { toast('Storage full!', 'error'); }
+  },
+  getClient(cid) {
+    return this.getClients().find(c => c.id === cid) || null;
+  },
+  getItems(cid) {
+    return safeParse(localStorage.getItem(KEYS.clientData(cid) + '_items'), []);
+  },
+  saveItems(cid, items) {
+    try { localStorage.setItem(KEYS.clientData(cid) + '_items', JSON.stringify(items)); }
+    catch(e) { toast('Storage full!', 'error'); }
+  },
+  getBills(cid) {
+    return safeParse(localStorage.getItem(KEYS.clientData(cid) + '_bills'), []);
+  },
+  saveBills(cid, bills) {
+    try { localStorage.setItem(KEYS.clientData(cid) + '_bills', JSON.stringify(bills)); }
+    catch(e) { toast('Storage full!', 'error'); }
+  },
+  getCounter(cid) {
+    return parseInt(localStorage.getItem(KEYS.clientData(cid) + '_counter') || '1000', 10) || 1000;
+  },
+  setCounter(cid, n) {
+    try { localStorage.setItem(KEYS.clientData(cid) + '_counter', String(n)); } catch(e) {}
+  },
+  getQuickAdd(cid) {
+    return localStorage.getItem(KEYS.clientData(cid) + '_quickAdd') === 'true';
+  },
+  setQuickAdd(cid, v) {
+    try { localStorage.setItem(KEYS.clientData(cid) + '_quickAdd', String(v)); } catch(e) {}
+  },
+  clearClientData(cid) {
+    ['_items','_bills','_counter','_quickAdd'].forEach(s => {
+      try { localStorage.removeItem(KEYS.clientData(cid) + s); } catch(e) {}
+    });
+  }
+};
+
+/* ---------- i18n ---------- */
+const I18N = {
+  en: {
+    loginTitle: 'Laundry Manager', loginSub: 'Sign in to your workspace',
+    tabMaster: 'Master', tabClient: 'Shop', tabDriver: 'Driver',
+    masterPassword: 'Master Password', signIn: 'Sign In', forgotPassword: 'Forgot password?',
+    shopId: 'Shop ID', password: 'Password', driverName: 'Driver Name',
+    quickAdd: 'Quick Add', currentOrder: 'Current Order', customerName: 'Customer name',
+    phone: 'Phone', addressOptional: 'Address (optional)',
+    markDelivery: 'Mark for delivery', applyDiscount: 'Apply discount (%)',
+    subtotal: 'Subtotal', discount: 'Discount', total: 'Total',
+    generateBill: 'Generate Bill', clear: 'Clear',
+    addService: 'Add', price: 'Price', addToOrder: 'Add to Order',
+    pickups: 'Pickups', deliveries: 'Deliveries',
+    clients: 'Clients', overview: 'Overview', catalogue: 'Catalogue',
+    bills: 'Bills', customers: 'Customers', settings: 'Settings', drivers: 'Drivers',
+    edit: 'Edit', save: 'Save', cancel: 'Cancel', close: 'Close', delete: 'Delete',
+    addClient: 'Add Client', addItem: '+ Add Item',
+    active: 'Active', expired: 'Expired',
+    shopName: 'Shop Name', address: 'Address', logo: 'Logo',
+    ownerPassword: 'Owner Password', staffPassword: 'Staff Password (POS only)',
+    expiryDate: 'Expiry Date', currency: 'Currency', timeSlots: 'Time Slots (comma-separated)',
+    itemName: 'Item Name', category: 'Category', image: 'Image',
+    washIron: 'Wash & Iron Price', dryClean: 'Dry Clean Price', ironOnly: 'Iron Only Price',
+    deleteItem: 'Delete Item', deleteClient: 'Delete Client',
+    markPaid: 'Mark as Paid', paymentMethod: 'Payment Method', confirm: 'Confirm',
+    backupTitle: 'Backup & Restore', backupDesc: 'Export all data as JSON, or restore from a backup file.',
+    exportBackup: 'Export Backup', restoreBackup: 'Restore from File',
+    resetMasterPassword: 'Reset Master Password', whatsappNumber: 'WhatsApp Number',
+    newPassword: 'New Password', reset: 'Reset',
+    masterSettings: 'Master Settings', newMasterPassword: 'New Master Password',
+    staffBadge: 'Staff', laundry: 'Laundry',
+    noItems: 'No items', noBills: 'No bills yet', noCustomers: 'No customers yet',
+    totalItems: 'Items', totalBills: 'Bills', totalRevenue: 'Revenue',
+    recentBills: 'Recent Bills', viewAll: 'View all',
+    walkIn: 'Walk-in Customer', unknown: 'Unknown',
+    wrongPassword: 'Wrong password', saved: 'Saved!', deleted: 'Deleted',
+    cartEmpty: 'Cart is empty', nameRequired: 'Name required', fillPrices: 'Fill all prices',
+    pickCustomer: 'Please enter a name', pickService: 'Select a service',
+    shopNotFound: 'Shop not found', driverNotFound: 'Driver not found',
+    confirmDelete: 'Delete this? This cannot be undone.',
+    paymentRecorded: 'Payment recorded', billCreated: 'Bill created',
+    backupExported: 'Backup exported', backupRestored: 'Backup restored',
+    invalidBackup: 'Invalid backup file', adminEnabled: 'Admin mode enabled',
+    staffBlocked: 'Staff cannot access admin', licenseExpired: 'License Expired',
+    renewVia: '📲 Renew via WhatsApp', backToLogin: 'Back to Login',
+    goodMorning: 'Good morning', orderSummary: 'Order Summary',
+    remainingLabel: 'Remaining', allLabel: 'All', clearFilter: 'Clear'
+  },
+  ar: {
+    loginTitle: 'مدير المغسلة', loginSub: 'سجل الدخول إلى مساحة العمل',
+    tabMaster: 'المدير', tabClient: 'المحل', tabDriver: 'السائق',
+    masterPassword: 'كلمة سر المدير', signIn: 'دخول', forgotPassword: 'نسيت كلمة السر؟',
+    shopId: 'معرف المحل', password: 'كلمة السر', driverName: 'اسم السائق',
+    quickAdd: 'إضافة سريعة', currentOrder: 'الطلب الحالي', customerName: 'اسم العميل',
+    phone: 'الهاتف', addressOptional: 'العنوان (اختياري)',
+    markDelivery: 'تحديد للتوصيل', applyDiscount: 'خصم (%)',
+    subtotal: 'المجموع الفرعي', discount: 'الخصم', total: 'المجموع',
+    generateBill: 'إصدار فاتورة', clear: 'مسح',
+    addService: 'أضف', price: 'السعر', addToOrder: 'أضف للطلب',
+    pickups: 'استلامات', deliveries: 'توصيلات',
+    clients: 'المحلات', overview: 'نظرة عامة', catalogue: 'القائمة',
+    bills: 'الفواتير', customers: 'العملاء', settings: 'الإعدادات', drivers: 'السائقون',
+    edit: 'تعديل', save: 'حفظ', cancel: 'إلغاء', close: 'إغلاق', delete: 'حذف',
+    addClient: 'إضافة محل', addItem: '+ صنف جديد',
+    active: 'نشط', expired: 'منتهي',
+    shopName: 'اسم المحل', address: 'العنوان', logo: 'الشعار',
+    ownerPassword: 'كلمة سر المالك', staffPassword: 'كلمة سر الموظف',
+    expiryDate: 'تاريخ الانتهاء', currency: 'العملة', timeSlots: 'الفترات الزمنية (مفصولة بفواصل)',
+    itemName: 'اسم الصنف', category: 'الفئة', image: 'الصورة',
+    washIron: 'سعر غسيل وكوي', dryClean: 'سعر تنظيف جاف', ironOnly: 'سعر كوي فقط',
+    deleteItem: 'حذف الصنف', deleteClient: 'حذف المحل',
+    markPaid: 'تحديد كمدفوع', paymentMethod: 'طريقة الدفع', confirm: 'تأكيد',
+    backupTitle: 'نسخ واستعادة', backupDesc: 'صدّر البيانات كملف JSON أو استعدها من ملف.',
+    exportBackup: 'تصدير نسخة', restoreBackup: 'استعادة من ملف',
+    resetMasterPassword: 'إعادة تعيين كلمة سر المدير', whatsappNumber: 'رقم الواتساب',
+    newPassword: 'كلمة سر جديدة', reset: 'إعادة تعيين',
+    masterSettings: 'إعدادات المدير', newMasterPassword: 'كلمة سر مدير جديدة',
+    staffBadge: 'موظف', laundry: 'مغسلة',
+    noItems: 'لا أصناف', noBills: 'لا فواتير بعد', noCustomers: 'لا عملاء بعد',
+    totalItems: 'الأصناف', totalBills: 'الفواتير', totalRevenue: 'الإيرادات',
+    recentBills: 'آخر الفواتير', viewAll: 'عرض الكل',
+    walkIn: 'عميل عابر', unknown: 'غير معروف',
+    wrongPassword: 'كلمة سر خاطئة', saved: 'تم الحفظ!', deleted: 'تم الحذف',
+    cartEmpty: 'السلة فارغة', nameRequired: 'الاسم مطلوب', fillPrices: 'أدخل جميع الأسعار',
+    pickCustomer: 'أدخل الاسم', pickService: 'اختر الخدمة',
+    shopNotFound: 'المحل غير موجود', driverNotFound: 'السائق غير موجود',
+    confirmDelete: 'هل تريد الحذف؟ لا يمكن التراجع.',
+    paymentRecorded: 'تم تسجيل الدفع', billCreated: 'تم إنشاء الفاتورة',
+    backupExported: 'تم تصدير النسخة', backupRestored: 'تمت الاستعادة',
+    invalidBackup: 'ملف نسخة غير صالح', adminEnabled: 'تم تفعيل وضع المدير',
+    staffBlocked: 'الموظف لا يمكنه الوصول للإدارة', licenseExpired: 'انتهت الترخيص',
+    renewVia: '📲 تجديد عبر واتساب', backToLogin: 'العودة لتسجيل الدخول',
+    goodMorning: 'صباح الخير', orderSummary: 'ملخص الطلب',
+    remainingLabel: 'المتبقي', allLabel: 'الكل', clearFilter: 'مسح'
+  }
+};
+
+/* ---------- APP OBJECT (public API) ---------- */
+const App = {};
+
+App.getLang = () => localStorage.getItem(KEYS.lang) || 'en';
+App.t = key => (I18N[App.getLang()] && I18N[App.getLang()][key]) || I18N.en[key] || key;
+
+App.applyLanguage = () => {
+  const lang = App.getLang();
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  const other = lang === 'en' ? 'العربية' : 'English';
+  ['authLangBtn','masterLangBtn','clientLangBtn','driverLangBtn'].forEach(id => {
+    const el = $(id); if (el) el.textContent = '🌐 ' + other;
+  });
+  // Translate static elements
+  const map = {
+    authTitle: 'loginTitle', authSub: 'loginSub',
+    tabMaster: 'tabMaster', tabClient: 'tabClient', tabDriver: 'tabDriver',
+    clientsTitle: 'clients', quickAddLabel: 'quickAdd', orderTitle: 'currentOrder',
+    driverShopName: 'laundry', shopTag: 'laundry'
+  };
+  Object.entries(map).forEach(([id, key]) => {
+    const el = $(id);
+    if (el) el.textContent = App.t(key);
+  });
+};
+
+App.toggleLanguage = () => {
+  localStorage.setItem(KEYS.lang, App.getLang() === 'en' ? 'ar' : 'en');
+  App.applyLanguage();
+  if (State.mode === 'master') { App.renderClientList(); App.renderMasterContent(); }
+  if (State.mode === 'client') { App.renderPosTabs(); App.renderPosItems(); App.renderPosCart(); }
+  if (State.mode === 'driver') App.loadDriverOrders();
+};
+
+/* ---------- MODAL ---------- */
+App.closeModal = (id) => {
+  const el = $(id);
+  if (el) el.classList.remove('show');
+};
+App.openModal = (id) => {
+  document.querySelectorAll('.modal.show').forEach(m => { if (m.id !== id) m.classList.remove('show'); });
+  const el = $(id);
+  if (el) el.classList.add('show');
+};
+
+/* ---------- AUTH ---------- */
+App.switchAuthTab = (tab) => {
+  ['master','client','driver'].forEach(x => {
+    $(`form${x.charAt(0).toUpperCase()+x.slice(1)}`).classList.toggle('hidden', x !== tab);
+    $(`tab${x.charAt(0).toUpperCase()+x.slice(1)}`).classList.toggle('active', x === tab);
+  });
+};
+
+App.masterLogin = () => {
+  const pass = $('masterPass').value;
+  if (pass !== Storage.getMaster().password) return toast(App.t('wrongPassword'), 'error');
+  $('masterPass').value = '';
+  enterMasterMode();
+};
+
+App.showForgot = () => {
+  $('recoveryWa').value = '';
+  $('recoveryNewPass').value = '';
+  App.openModal('forgotModal');
+};
+
+App.resetMasterPassword = () => {
+  const wa = $('recoveryWa').value.trim();
+  const np = $('recoveryNewPass').value;
+  if (!wa || !np) return toast('Fill both fields', 'error');
+  if (wa !== Storage.getMaster().whatsapp) return toast('WhatsApp does not match', 'error');
+  const m = Storage.getMaster();
+  m.password = np;
+  Storage.saveMaster(m);
+  App.closeModal('forgotModal');
+  toast(App.t('saved'), 'success');
+};
+
+App.clientLogin = async () => {
+  const sid = $('clientShopId').value.trim();
+  const pass = $('clientPass').value;
+  const client = Storage.getClient(sid);
+  if (!client) return toast(App.t('shopNotFound'), 'error');
+  let isStaff = false;
+  let isAdmin = false;
+  if (client.ownerPassword === pass) { isAdmin = true; }
+  else if (client.staffPassword && client.staffPassword === pass) { isStaff = true; }
+  else return toast(App.t('wrongPassword'), 'error');
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(client.expiry); exp.setHours(23,59,59,999);
+  if (today > exp) return showLockScreen(client);
+
+  $('clientPass').value = '';
+  await enterClientMode(client, { isAdmin, isStaff });
+};
+
+App.driverLogin = () => {
+  const sid = $('driverShopId').value.trim();
+  const name = $('driverNameInput').value.trim();
+  const pass = $('driverPass').value;
+  const client = Storage.getClient(sid);
+  if (!client) return toast(App.t('shopNotFound'), 'error');
+  const driver = (client.drivers || []).find(d => d.name === name);
+  if (!driver) return toast(App.t('driverNotFound'), 'error');
+  if (driver.password !== pass) return toast(App.t('wrongPassword'), 'error');
+  $('driverPass').value = '';
+  enterDriverMode(client, name);
+};
+
+App.logout = () => {
+  State.mode = null;
+  State.master.selectedClientId = null;
+  $('masterApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+};
+
+App.driverLogout = () => {
+  State.mode = null;
+  State.driver = { client: null, name: null, activeTab: 'pickups' };
+  $('driverApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+};
+
+function showLockScreen(client) {
+  $('authScreen').classList.add('hidden');
+  const wrap = document.createElement('div');
+  wrap.className = 'auth-screen';
+  wrap.innerHTML = `
+    <div class="auth-card" style="text-align:center;max-width:380px">
+      <div style="font-size:3rem;margin-bottom:12px">🔒</div>
+      <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:8px">${esc(App.t('licenseExpired'))}</h2>
+      <p style="color:var(--c-text-muted);font-size:.9rem;margin-bottom:20px">${esc(client.shopName)}</p>
+      <button class="btn btn-primary btn-block" type="button" onclick="window.open('https://wa.me/${Storage.getMaster().whatsapp.replace(/\D/g,'')}','_blank')">${App.t('renewVia')}</button>
+      <button class="btn btn-outline btn-block" type="button" style="margin-top:8px" onclick="location.reload()">${App.t('backToLogin')}</button>
+    </div>`;
+  document.body.appendChild(wrap);
+}
+
+/* ---------- MODE ENTRY ---------- */
+function enterMasterMode() {
+  State.mode = 'master';
+  $('authScreen').classList.add('hidden');
+  $('masterApp').classList.add('active');
+  State.master.selectedClientId = null;
+  State.master.activeTab = 'overview';
+  App.renderClientList();
+  App.renderMasterContent();
+}
+
+async function enterClientMode(client, { isAdmin, isStaff }) {
+  State.mode = 'client';
+  State.client.client = client;
+  State.client.isAdmin = isAdmin;
+  State.client.isStaff = isStaff;
+  State.client.cart = [];
+  State.client.activeCategory = 'all';
+  State.client.quickAdd = Storage.getQuickAdd(client.id);
+
+  $('authScreen').classList.add('hidden');
+  $('clientApp').classList.add('active');
+  $('shopNameText').textContent = client.shopName;
+  $('staffBadge').classList.toggle('hidden', !isStaff);
+  if (client.logo) {
+    $('shopLogo').src = client.logo;
+    $('shopLogo').style.display = 'block';
+    $('shopNameText').style.display = 'none';
+  } else {
+    $('shopLogo').style.display = 'none';
+    $('shopNameText').style.display = 'block';
+  }
+  updateQuickAddUI();
+  ensureClientItems(client.id);
+  App.renderPosTabs();
+  App.renderPosItems();
+  App.renderPosCart();
+}
+
+function enterDriverMode(client, name) {
+  State.mode = 'driver';
+  State.driver.client = client;
+  State.driver.name = name;
+  State.driver.activeTab = 'pickups';
+  $('authScreen').classList.add('hidden');
+  $('driverApp').classList.add('active');
+  $('driverShopName').textContent = client.shopName;
+  $('driverNameDisplay').textContent = 'Driver: ' + name;
+  App.switchDriverTab('pickups');
+  App.loadDriverOrders();
+}
+
+function ensureClientItems(cid) {
+  const items = Storage.getItems(cid);
+  if (items.length) return;
+  const seeded = DEFAULT_ITEMS.map(d => ({
+    id: uid(), name: d.name, category: d.category, image: '',
+    prices: { washIron: d.washIron, dryClean: d.dryClean, iron: d.iron }
+  }));
+  Storage.saveItems(cid, seeded);
+}
+
+/* ---------- MASTER: CLIENT LIST ---------- */
+App.renderClientList = () => {
+  const clients = Storage.getClients();
+  const q = ($('clientSearch') ? $('clientSearch').value : '').toLowerCase();
+  const filtered = clients.filter(c => c.shopName.toLowerCase().includes(q) || c.id.includes(q));
+  const container = $('clientList');
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🏪</div>${clients.length ? 'No matches' : 'No clients yet'}</div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(c => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const exp = new Date(c.expiry); exp.setHours(23,59,59,999);
+    const active = today <= exp;
+    const isSel = State.master.selectedClientId === c.id;
+    return `<div class="client-item ${isSel ? 'active' : ''}" data-cid="${c.id}" onclick="App.selectMasterClient('${c.id}')">
+      <div class="client-name">
+        <span>${esc(c.shopName)}</span>
+        <span class="pill ${active ? 'pill-success' : 'pill-danger'}">${active ? App.t('active') : App.t('expired')}</span>
+      </div>
+      <div class="client-meta">ID: ${esc(c.id)} · Exp: ${esc(c.expiry)}</div>
+    </div>`;
+  }).join('');
+};
+
+App.selectMasterClient = (cid) => {
+  State.master.selectedClientId = cid;
+  State.master.activeTab = 'overview';
+  App.renderClientList();
+  App.renderMasterContent();
+};
+
+/* ---------- MASTER: CONTENT ---------- */
+App.renderMasterContent = () => {
+  const cid = State.master.selectedClientId;
+  const client = Storage.getClient(cid);
+  if (!client) {
+    $('masterContent').innerHTML = `<div class="empty-state" style="padding:80px 20px">
+      <div class="empty-icon">🧺</div>
+      <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:6px">Select a client to manage</h2>
+      <p style="font-size:.85rem">Choose a shop from the sidebar or create a new one.</p>
+    </div>`;
+    return;
+  }
+  $('masterContent').innerHTML = `
+    <div class="content-header">
+      <div>
+        <div class="content-title">${esc(client.shopName)}</div>
+        <div class="content-sub">Shop ID: ${esc(client.id)} · Expires ${esc(client.expiry)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" type="button" onclick="App.openClientEditor('${client.id}')">✏️ ${App.t('edit')}</button>
+      </div>
+    </div>
+    <div class="tab-bar">
+      ${['overview','catalogue','bills','customers','drivers','settings'].map(tab =>
+        `<button class="tab-btn ${State.master.activeTab === tab ? 'active' : ''}" type="button" onclick="App.setMasterTab('${tab}')">${App.t(tab)}</button>`
+      ).join('')}
+    </div>
+    <div id="masterTabBody"></div>`;
+  renderMasterTabBody();
+};
+
+App.setMasterTab = (tab) => {
+  State.master.activeTab = tab;
+  App.renderMasterContent();
+};
+
+function renderMasterTabBody() {
+  const client = Storage.getClient(State.master.selectedClientId);
+  if (!client) return;
+  const body = $('masterTabBody');
+  if (!body) return;
+  const tab = State.master.activeTab;
+  if (tab === 'overview') body.innerHTML = renderOverview(client);
+  else if (tab === 'catalogue') body.innerHTML = renderCatalogue(client);
+  else if (tab === 'bills') body.innerHTML = renderBills(client);
+  else if (tab === 'customers') body.innerHTML = renderCustomers(client);
+  else if (tab === 'drivers') body.innerHTML = renderDrivers(client);
+  else if (tab === 'settings') body.innerHTML = renderSettings(client);
+}
+
+function renderOverview(client) {
+  const items = Storage.getItems(client.id);
+  const bills = Storage.getBills(client.id);
+  const cur = client.currency || 'BHD';
+  const revenue = bills.reduce((s, b) => s + num(b.total), 0);
+  const pending = bills.filter(b => b.paymentStatus === 'Pending').length;
+  const recent = bills.slice(0, 5);
+  return `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">${App.t('totalItems')}</div><div class="stat-value">${items.length}</div><div class="stat-sub">${App.t('catalogue')}</div></div>
+      <div class="stat-card"><div class="stat-label">${App.t('totalBills')}</div><div class="stat-value">${bills.length}</div><div class="stat-sub">${pending} pending</div></div>
+      <div class="stat-card"><div class="stat-label">${App.t('totalRevenue')}</div><div class="stat-value">${revenue.toFixed(3)}</div><div class="stat-sub">${esc(cur)}</div></div>
+      <div class="stat-card"><div class="stat-label">${App.t('drivers')}</div><div class="stat-value">${(client.drivers || []).length}</div><div class="stat-sub">Assigned</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>${App.t('recentBills')}</h3>
+        <button class="btn btn-outline btn-sm" type="button" onclick="App.setMasterTab('bills')">${App.t('viewAll')}</button>
+      </div>
+      <div class="card-body">
+        ${recent.map(b => `
+          <div class="list-row" onclick="App.viewMasterBill('${client.id}', ${b.number})">
+            <div class="list-row-info">
+              <div class="list-row-title">#${b.number} — ${esc(b.customer.name || App.t('walkIn'))}</div>
+              <div class="list-row-meta">
+                <span>${formatDate(b.date)}</span>
+                <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+              </div>
+            </div>
+            <strong>${formatMoney(b.total, cur)}</strong>
+          </div>`).join('') || `<div class="empty-state">${App.t('noBills')}</div>`}
+      </div>
+    </div>`;
+}
+
+function renderCatalogue(client) {
+  const items = Storage.getItems(client.id);
+  return `
+    <div class="card-head" style="margin-bottom:14px;border:1px solid var(--c-border);border-radius:var(--r-md);padding:12px 16px;background:#fff">
+      <h3>${items.length} ${App.t('totalItems')}</h3>
+      <button class="btn btn-primary btn-sm" type="button" onclick="App.openItemEditor('${client.id}')">${App.t('addItem')}</button>
+    </div>
+    <div class="cat-grid">
+      ${items.map(i => `
+        <div class="cat-card">
+          <img class="cat-img" src="${esc(i.image || placeholderImg(i.name))}" alt="" loading="lazy">
+          <div class="cat-actions">
+            <button class="cat-btn" type="button" onclick="App.openItemEditor('${client.id}','${i.id}')" title="Edit">✏️</button>
+            <button class="cat-btn" type="button" onclick="App.deleteCatalogueItem('${client.id}','${i.id}')" title="Delete">🗑</button>
+          </div>
+          <div class="cat-body">
+            <div class="cat-name">${esc(i.name)}</div>
+            <div class="cat-prices">
+              <span>W&I: <b>${i.prices.washIron.toFixed(3)}</b></span>
+              <span>Dry: <b>${i.prices.dryClean.toFixed(3)}</b></span>
+              <span>Iron: <b>${i.prices.iron.toFixed(3)}</b></span>
+            </div>
+          </div>
+        </div>`).join('') || `<div class="empty-state" style="grid-column:1/-1">${App.t('noItems')}</div>`}
+    </div>`;
+}
+
+function renderBills(client) {
+  const bills = Storage.getBills(client.id);
+  const cur = client.currency || 'BHD';
+  return `
+    <div class="card">
+      <div class="card-head">
+        <h3>${bills.length} ${App.t('bills')}</h3>
+        <input type="text" id="masterBillSearch" placeholder="Search..." oninput="App.filterMasterBills('${client.id}')" style="padding:7px 12px;font-size:.83rem;max-width:220px">
+      </div>
+      <div class="card-body" id="masterBillList">
+        ${bills.map(b => `
+          <div class="list-row" onclick="App.viewMasterBill('${client.id}', ${b.number})">
+            <div class="list-row-info">
+              <div class="list-row-title">#${b.number} — ${esc(b.customer.name || App.t('walkIn'))}</div>
+              <div class="list-row-meta">
+                <span>${formatDateTime(b.date)}</span>
+                <span>${b.items.length} items</span>
+                <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+                ${b.delivery ? `<span class="pill pill-info">🚚 ${esc(b.driverName || '')}</span>` : ''}
+              </div>
+            </div>
+            <strong>${formatMoney(b.total, cur)}</strong>
+          </div>`).join('') || `<div class="empty-state">${App.t('noBills')}</div>`}
+      </div>
+    </div>`;
+}
+
+App.filterMasterBills = (cid) => {
+  const q = ($('masterBillSearch') ? $('masterBillSearch').value : '').toLowerCase();
+  const client = Storage.getClient(cid);
+  const cur = client.currency || 'BHD';
+  const bills = Storage.getBills(cid).filter(b =>
+    String(b.number).includes(q) ||
+    (b.customer.name || '').toLowerCase().includes(q) ||
+    (b.customer.phone || '').includes(q)
+  );
+  const list = $('masterBillList');
+  if (!list) return;
+  list.innerHTML = bills.map(b => `
+    <div class="list-row" onclick="App.viewMasterBill('${cid}', ${b.number})">
+      <div class="list-row-info">
+        <div class="list-row-title">#${b.number} — ${esc(b.customer.name || App.t('walkIn'))}</div>
+        <div class="list-row-meta">
+          <span>${formatDateTime(b.date)}</span>
+          <span class="pill ${b.paymentStatus === 'Paid' ? 'pill-success' : 'pill-warn'}">${b.paymentStatus}</span>
+        </div>
+      </div>
+      <strong>${formatMoney(b.total, cur)}</strong>
+    </div>`).join('') || `<div class="empty-state">${App.t('noBills')}</div>`;
+};
+
+function renderCustomers(client) {
+  const bills = Storage.getBills(client.id);
+  const cur = client.currency || 'BHD';
+  const map = new Map();
+  bills.forEach(b => {
+    const phone = (b.customer.phone || '').trim();
+    if (!phone) return;
+    if (!map.has(phone)) map.set(phone, { name: b.customer.name, phone, orders: 0, total: 0 });
+    const c = map.get(phone);
+    c.orders++;
+    c.total += num(b.total);
+  });
+  const list = Array.from(map.values()).sort((a, b) => b.total - a.total);
+  return `
+    <div class="card">
+      <div class="card-head"><h3>${list.length} ${App.t('customers')}</h3></div>
+      <div class="card-body">
+        ${list.map(c => `
+          <div class="list-row" style="cursor:default">
+            <div class="list-row-info">
+              <div class="list-row-title">${esc(c.name)}</div>
+              <div class="list-row-meta"><span>📞 ${esc(c.phone)}</span><span>${c.orders} orders</span></div>
+            </div>
+            <strong>${formatMoney(c.total, cur)}</strong>
+          </div>`).join('') || `<div class="empty-state">${App.t('noCustomers')}</div>`}
+      </div>
+    </div>`;
+}
+
+function renderDrivers(client) {
+  const drivers = client.drivers || [];
+  return `
+    <div class="card">
+      <div class="card-head">
+        <h3>${drivers.length} ${App.t('drivers')}</h3>
+        <button class="btn btn-primary btn-sm" type="button" onclick="App.openDriverEditor()">+ Add Driver</button>
+      </div>
+      <div class="card-body" id="driverListBody">
+        ${drivers.map((d, i) => `
+          <div class="list-row" style="cursor:default">
+            <div class="list-row-info">
+              <div class="list-row-title">${esc(d.name)}</div>
+              <div class="list-row-meta"><span>Password: ${esc(d.password)}</span></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="App.removeDriver(${i})" style="color:var(--c-danger)">Delete</button>
+          </div>`).join('') || `<div class="empty-state">No drivers configured</div>`}
+      </div>
+    </div>`;
+}
+
+App.openDriverEditor = () => {
+  const client = Storage.getClient(State.master.selectedClientId);
+  if (!client) return;
+  const name = prompt('Driver name:');
+  if (!name) return;
+  const pass = prompt('Driver password:');
+  if (!pass) return;
+  const clients = Storage.getClients();
+  const idx = clients.findIndex(c => c.id === client.id);
+  if (idx === -1) return;
+  clients[idx].drivers = clients[idx].drivers || [];
+  clients[idx].drivers.push({ name, password: pass });
+  Storage.saveClients(clients);
+  renderMasterTabBody();
+  toast(App.t('saved'), 'success');
+};
+
+App.removeDriver = (i) => {
+  const client = Storage.getClient(State.master.selectedClientId);
+  if (!client) return;
+  const clients = Storage.getClients();
+  const idx = clients.findIndex(c => c.id === client.id);
+  if (idx === -1) return;
+  clients[idx].drivers = (clients[idx].drivers || []).filter((_, x) => x !== i);
+  Storage.saveClients(clients);
+  renderMasterTabBody();
+  toast(App.t('deleted'), 'success');
+};
+
+function renderSettings(client) {
+  return `
+    <div class="card">
+      <div class="card-head"><h3>${App.t('settings')}</h3></div>
+      <div style="padding:20px">
+        <div class="field"><label>${App.t('shopName')}</label><input id="msShopName" value="${esc(client.shopName)}"></div>
+        <div class="field"><label>${App.t('address')}</label><input id="msAddress" value="${esc(client.address || '')}"></div>
+        <div class="field"><label>${App.t('currency')}</label><input id="msCurrency" value="${esc(client.currency || 'BHD')}"></div>
+        <div class="field"><label>${App.t('timeSlots')}</label><input id="msTimeSlots" value="${esc(client.timeSlots || '')}"></div>
+        <div class="field"><label>${App.t('ownerPassword')}</label><input id="msOwnerPass" value="${esc(client.ownerPassword || '')}"></div>
+        <div class="field"><label>${App.t('staffPassword')}</label><input id="msStaffPass" value="${esc(client.staffPassword || '')}"></div>
+        <div class="field"><label>${App.t('expiryDate')}</label><input type="date" id="msExpiry" value="${esc(client.expiry)}"></div>
+        <button class="btn btn-primary" type="button" onclick="App.saveClientSettings('${client.id}')">${App.t('save')}</button>
+      </div>
+    </div>`;
+}
+
+App.saveClientSettings = (cid) => {
+  const clients = Storage.getClients();
+  const idx = clients.findIndex(c => c.id === cid);
+  if (idx === -1) return;
+  clients[idx] = Object.assign({}, clients[idx], {
+    shopName: $('msShopName').value.trim() || clients[idx].shopName,
+    address: $('msAddress').value.trim(),
+    currency: $('msCurrency').value.trim() || 'BHD',
+    timeSlots: $('msTimeSlots').value.trim(),
+    ownerPassword: $('msOwnerPass').value,
+    staffPassword: $('msStaffPass').value,
+    expiry: $('msExpiry').value || clients[idx].expiry
+  });
+  Storage.saveClients(clients);
+  toast(App.t('saved'), 'success');
+  App.renderMasterContent();
+};
+
+/* ---------- MASTER: CLIENT EDITOR ---------- */
+App.openClientEditor = (cid) => {
+  const client = cid ? Storage.getClient(cid) : null;
+  State.client.editingClientId = cid || null;
+  $('clientEditorTitle').textContent = cid ? App.t('edit') : App.t('addClient');
+  $('ceShopName').value = client ? client.shopName : '';
+  $('ceAddress').value = client ? (client.address || '') : '';
+  $('cePassword').value = client ? (client.ownerPassword || '') : '';
+  $('ceStaffPassword').value = client ? (client.staffPassword || '') : '';
+  $('ceCurrency').value = client ? (client.currency || 'BHD') : 'BHD';
+  $('ceExpiry').value = client ? client.expiry : new Date(Date.now() + 365*86400000).toISOString().slice(0,10);
+  $('ceTimeSlots').value = client ? (client.timeSlots || '') : '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM';
+  $('ceLogo').value = '';
+  $('ceDeleteBtn').classList.toggle('hidden', !cid);
+  App.openModal('clientEditorModal');
+};
+
+App.saveClientEditor = async () => {
+  const name = $('ceShopName').value.trim();
+  const pass = $('cePassword').value;
+  const expiry = $('ceExpiry').value;
+  if (!name || !pass || !expiry) return toast('Fill required fields', 'error');
+  const cid = State.client.editingClientId || uid();
+  let logo = null;
+  const file = $('ceLogo').files[0];
+  if (file) {
+    try {
+      logo = await readFileAsDataURL(file);
+    } catch(e) { return toast('Logo upload failed', 'error'); }
+  }
+  const clients = Storage.getClients();
+  const idx = clients.findIndex(c => c.id === cid);
+  const existing = idx > -1 ? clients[idx] : null;
+  const data = {
+    id: cid,
+    shopName: name,
+    address: $('ceAddress').value.trim(),
+    logo: logo || (existing ? existing.logo : ''),
+    ownerPassword: pass,
+    staffPassword: $('ceStaffPassword').value,
+    currency: $('ceCurrency').value.trim() || 'BHD',
+    expiry: expiry,
+    timeSlots: $('ceTimeSlots').value.trim(),
+    drivers: existing ? (existing.drivers || []) : []
+  };
+  if (idx > -1) clients[idx] = data; else clients.push(data);
+  Storage.saveClients(clients);
+  App.closeModal('clientEditorModal');
+  App.renderClientList();
+  if (State.master.selectedClientId === cid) App.renderMasterContent();
+  toast(App.t('saved'), 'success');
+};
+
+App.deleteClient = () => {
+  const cid = State.client.editingClientId;
+  if (!cid) return;
+  showConfirm('Delete this client and all their data?', () => {
+    Storage.saveClients(Storage.getClients().filter(c => c.id !== cid));
+    Storage.clearClientData(cid);
+    if (State.master.selectedClientId === cid) State.master.selectedClientId = null;
+    App.closeModal('clientEditorModal');
+    App.renderClientList();
+    App.renderMasterContent();
+    toast(App.t('deleted'), 'success');
+  });
+};
+
+/* ---------- MASTER: ITEM EDITOR ---------- */
+App.openItemEditor = (cid, itemId) => {
+  const items = Storage.getItems(cid);
+  const item = itemId ? items.find(i => i.id === itemId) : null;
+  State.client.editingClientId = cid;
+  State.client.editingItemId = itemId || null;
+  $('itemEditorTitle').textContent = itemId ? App.t('edit') : App.t('addItem');
+  $('ieName').value = item ? item.name : '';
+  $('ieCategory').value = item ? item.category : '';
+  $('ieImageUrl').value = item ? item.image : '';
+  $('ieImageFile').value = '';
+  $('iePriceWash').value = item ? item.prices.washIron : '';
+  $('iePriceDry').value = item ? item.prices.dryClean : '';
+  $('iePriceIron').value = item ? item.prices.iron : '';
+  $('ieDeleteBtn').classList.toggle('hidden', !itemId);
+  App.openModal('itemEditorModal');
+};
+
+App.saveItemEditor = async () => {
+  const name = $('ieName').value.trim();
+  if (!name) return toast(App.t('nameRequired'), 'error');
+  const wash = num($('iePriceWash').value, NaN);
+  const dry = num($('iePriceDry').value, NaN);
+  const iron = num($('iePriceIron').value, NaN);
+  if (isNaN(wash) || isNaN(dry) || isNaN(iron)) return toast(App.t('fillPrices'), 'error');
+  const cid = State.client.editingClientId;
+  const cat = $('ieCategory').value.trim() || 'Other';
+  const imageUrl = $('ieImageUrl').value.trim();
+  const file = $('ieImageFile').files[0];
+  let image = imageUrl;
+  if (file) {
+    try { image = await readFileAsDataURL(file); }
+    catch(e) { return toast('Image failed', 'error'); }
+  }
+  const items = Storage.getItems(cid);
+  const prices = { washIron: wash, dryClean: dry, iron: iron };
+  if (State.client.editingItemId) {
+    const idx = items.findIndex(i => i.id === State.client.editingItemId);
+    if (idx > -1) items[idx] = Object.assign({}, items[idx], { name, category: cat, image, prices });
+  } else {
+    items.push({ id: uid(), name, category: cat, image, prices });
+  }
+  Storage.saveItems(cid, items);
+  App.closeModal('itemEditorModal');
+  if (State.mode === 'master') renderMasterTabBody();
+  if (State.mode === 'client') { App.renderPosTabs(); App.renderPosItems(); }
+  toast(App.t('saved'), 'success');
+};
+
+App.deleteItem = () => {
+  const cid = State.client.editingClientId;
+  const itemId = State.client.editingItemId;
+  if (!cid || !itemId) return;
+  showConfirm('Delete this item?', () => {
+    Storage.saveItems(cid, Storage.getItems(cid).filter(i => i.id !== itemId));
+    App.closeModal('itemEditorModal');
+    if (State.mode === 'master') renderMasterTabBody();
+    if (State.mode === 'client') { App.renderPosTabs(); App.renderPosItems(); }
+    toast(App.t('deleted'), 'success');
+  });
+};
+
+App.deleteCatalogueItem = (cid, itemId) => {
+  showConfirm('Delete this item?', () => {
+    Storage.saveItems(cid, Storage.getItems(cid).filter(i => i.id !== itemId));
+    renderMasterTabBody();
+    toast(App.t('deleted'), 'success');
+  });
+};
+
+/* ---------- POS: RENDER ---------- */
+App.renderPosTabs = () => {
+  const client = State.client.client;
+  if (!client) return;
+  const items = Storage.getItems(client.id);
+  const cats = [...new Set(items.map(i => i.category || 'Other'))].filter(Boolean);
+  const tabs = $('posCatTabs');
+  if (!tabs) return;
+  tabs.innerHTML =
+    `<button class="cat-pill ${State.client.activeCategory === 'all' ? 'active' : ''}" type="button" onclick="App.setPosCategory('all')">${App.t('allLabel')}</button>` +
+    cats.map(c => `<button class="cat-pill ${State.client.activeCategory === c ? 'active' : ''}" type="button" onclick="App.setPosCategory('${c.replace(/'/g,"\\'")}')">${esc(c)}</button>`).join('');
+};
+
+App.setPosCategory = (cat) => {
+  State.client.activeCategory = cat;
+  App.renderPosTabs();
+  App.renderPosItems();
+};
+
+App.renderPosItems = () => {
+  const client = State.client.client;
+  if (!client) return;
+  const items = Storage.getItems(client.id);
+  const grid = $('posItemsGrid');
+  if (!grid) return;
+  const search = ($('posSearch') ? $('posSearch').value : '').toLowerCase().trim();
+  let filtered = items;
+  if (State.client.activeCategory !== 'all') filtered = filtered.filter(i => i.category === State.client.activeCategory);
+  if (search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search));
+  const cur = client.currency || 'BHD';
+  grid.innerHTML = filtered.map(i => `
+    <div class="item-tile" onclick="App.handleItemClick('${i.id}')">
+      <img src="${esc(i.image || placeholderImg(i.name))}" alt="" loading="lazy">
+      <div class="item-body">
+        <div class="item-title">${esc(i.name)}</div>
+        <div class="item-price">${i.prices.washIron.toFixed(3)} ${cur}</div>
+      </div>
+      ${State.client.isAdmin ? `<button class="item-edit" type="button" onclick="event.stopPropagation();App.openItemEditor('${client.id}','${i.id}')">✏️</button>` : ''}
+    </div>`).join('') || `<div class="empty-state" style="grid-column:1/-1">${App.t('noItems')}</div>`;
+};
+
+App.handleItemClick = (itemId) => {
+  if (State.client.quickAdd) addItemDirect(itemId);
+  else App.openServicePicker(itemId);
+};
+
+function addItemDirect(itemId) {
+  const client = State.client.client;
+  if (!client) return;
+  const item = Storage.getItems(client.id).find(i => i.id === itemId);
+  if (!item) return;
+  const svc = SERVICES[0];
+  const price = item.prices[svc.key];
+  const existing = State.client.cart.find(x => x.itemId === itemId && x.service === svc.label);
+  if (existing) existing.qty++;
+  else State.client.cart.push({ itemId, name: item.name, service: svc.label, price, qty: 1 });
+  App.renderPosCart();
+}
+
+App.openServicePicker = (itemId) => {
+  const client = State.client.client;
+  if (!client) return;
+  const item = Storage.getItems(client.id).find(i => i.id === itemId);
+  if (!item) return;
+  State.client.pendingItemId = itemId;
+  $('serviceItemName').textContent = item.name;
+  $('serviceOptions').innerHTML = SERVICES.map((s, i) => {
+    const price = item.prices[s.key];
+    return `<label class="svc-option">
+      <input type="radio" name="svcPick" value="${s.label}" data-price="${price}" ${i === 0 ? 'checked' : ''} onchange="App.updateServicePrice()">
+      <span style="flex:1;font-weight:600">${s.label}</span>
+      <strong style="color:var(--c-primary)">${price.toFixed(3)}</strong>
+    </label>`;
+  }).join('');
+  $('servicePrice').value = item.prices.washIron.toFixed(3);
+  App.openModal('serviceModal');
+};
+
+App.updateServicePrice = () => {
+  const checked = document.querySelector('input[name="svcPick"]:checked');
+  if (checked) $('servicePrice').value = parseFloat(checked.dataset.price).toFixed(3);
+};
+
+App.confirmService = () => {
+  const svc = document.querySelector('input[name="svcPick"]:checked');
+  if (!svc) return toast(App.t('pickService'), 'error');
+  const price = num($('servicePrice').value, NaN);
+  if (isNaN(price)) return toast('Invalid price', 'error');
+  const client = State.client.client;
+  const item = Storage.getItems(client.id).find(i => i.id === State.client.pendingItemId);
+  if (!item) return;
+  const existing = State.client.cart.find(x => x.itemId === State.client.pendingItemId && x.service === svc.value);
+  if (existing) existing.qty++;
+  else State.client.cart.push({ itemId: item.id, name: item.name, service: svc.value, price, qty: 1 });
+  App.closeModal('serviceModal');
+  App.renderPosCart();
+};
+
+App.renderPosCart = () => {
+  const client = State.client.client;
+  if (!client) return;
+  const cur = client.currency || 'BHD';
+  const cart = State.client.cart;
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const applied = ($('applyDiscount') && $('applyDiscount').checked) || ($('applyDiscountM') && $('applyDiscountM').checked);
+  const pct = readDiscountValue();
+  const discountAmount = applied ? subtotal * pct / 100 : 0;
+  const total = subtotal - discountAmount;
+
+  const html = cart.length ? cart.map(i => `
+    <div class="cart-row">
+      <div class="cart-info">
+        <div class="cart-name">${esc(i.name)}</div>
+        <div class="cart-svc">${esc(i.service)}</div>
+      </div>
+      <div class="cart-qty">
+        <button class="qty-btn" type="button" onclick="App.changeQty('${i.itemId}','${i.service.replace(/'/g,"\\'")}',-1)">−</button>
+        <span style="min-width:18px;text-align:center;font-weight:700;font-size:.82rem">${i.qty}</span>
+        <button class="qty-btn" type="button" onclick="App.changeQty('${i.itemId}','${i.service.replace(/'/g,"\\'")}',1)">+</button>
+      </div>
+      <div class="cart-price">${(i.price * i.qty).toFixed(3)}</div>
+    </div>`).join('') : `<div class="empty-state" style="padding:14px;font-size:.85rem">${App.t('cartEmpty')}</div>`;
+
+  ['posCartList','posCartListM'].forEach(id => { const e = $(id); if (e) e.innerHTML = html; });
+
+  const setText = (id, val) => { const e = $(id); if (e) e.textContent = val; };
+  setText('posSubtotal', formatMoney(subtotal, cur));
+  setText('posSubtotalM', formatMoney(subtotal, cur));
+  setText('posDiscount', '-' + formatMoney(discountAmount, cur));
+  setText('posDiscountM', '-' + formatMoney(discountAmount, cur));
+  setText('posTotal', formatMoney(total, cur));
+  setText('posTotalM', formatMoney(total, cur));
+  ['posDiscountLine','posDiscountLineM'].forEach(id => { const e = $(id); if (e) e.classList.toggle('hidden', !applied); });
+
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  setText('posCartCount', cartCount);
+  const badge = $('fabBadge');
+  if (badge) {
+    badge.textContent = cartCount;
+    badge.style.display = cartCount > 0 ? 'flex' : 'none';
+  }
+};
+
+App.changeQty = (itemId, service, delta) => {
+  const entry = State.client.cart.find(x => x.itemId === itemId && x.service === service);
+  if (!entry) return;
+  entry.qty += delta;
+  if (entry.qty <= 0) {
+    State.client.cart = State.client.cart.filter(x => !(x.itemId === itemId && x.service === service));
+  }
+  App.renderPosCart();
+};
+
+App.clearCart = () => {
+  State.client.cart = [];
+  App.renderPosCart();
+};
+
+App.openMobileCart = () => {
+  $('mobileCart').classList.add('open');
+  $('posOverlay').classList.add('show');
+};
+App.closeMobileCart = () => {
+  $('mobileCart').classList.remove('open');
+  $('posOverlay').classList.remove('show');
+};
+
+App.toggleQuickAdd = () => {
+  State.client.quickAdd = !State.client.quickAdd;
+  if (State.client.client) Storage.setQuickAdd(State.client.client.id, State.client.quickAdd);
+  updateQuickAddUI();
+};
+
+function updateQuickAddUI() {
+  const sw = $('quickAddSwitch');
+  const knob = $('quickAddKnob');
+  if (!sw || !knob) return;
+  if (State.client.quickAdd) {
+    sw.style.background = 'var(--c-primary)';
+    knob.style.left = '18px';
+  } else {
+    sw.style.background = 'var(--c-border-2)';
+    knob.style.left = '2px';
+  }
+}
+
+function readDiscountValue() {
+  // Read from both fields — take max non-zero (both are kept in sync)
+  const d = num($('discountPercent') && $('discountPercent').value);
+  const m = num($('discountPercentM') && $('discountPercentM').value);
+  const v = Math.max(d, m);
+  return Math.max(0, Math.min(100, v));
+}
+
+App.syncDiscount = (source) => {
+  // Sync value from source field to the other, THEN render
+  if (source === 'desktop') {
+    const d = $('discountPercent'), m = $('discountPercentM');
+    if (d && m) m.value = d.value;
+  } else {
+    const d = $('discountPercent'), m = $('discountPercentM');
+    if (d && m) d.value = m.value;
+  }
+  App.renderPosCart();
+};
+
+App.onDiscountToggle = (source) => {
+  if (source === 'desktop') {
+    const checked = $('applyDiscount').checked;
+    if ($('applyDiscountM')) $('applyDiscountM').checked = checked;
+  } else {
+    const checked = $('applyDiscountM').checked;
+    if ($('applyDiscount') && checked !== $('applyDiscount').checked) $('applyDiscount').checked = checked;
+  }
+  const showBox = source === 'desktop' ? $('applyDiscount').checked : $('applyDiscountM').checked;
+  if (source === 'desktop') {
+    $('discountBox').classList.toggle('hidden', !showBox);
+    $('discountBoxM').classList.toggle('hidden', !showBox);
+  } else {
+    $('discountBoxM').classList.toggle('hidden', !showBox);
+    $('discountBox').classList.toggle('hidden', !showBox);
+  }
+  App.renderPosCart();
+};
+
+App.onDeliveryToggle = (source) => {
+  if (source === 'desktop') {
+    const checked = $('markDelivery').checked;
+    if ($('markDeliveryM')) $('markDeliveryM').checked = checked;
+    $('deliveryFields').classList.toggle('hidden', !checked);
+    $('deliveryFieldsM').classList.toggle('hidden', !checked);
+  } else {
+    const checked = $('markDeliveryM').checked;
+    if ($('markDelivery') && checked !== $('markDelivery').checked) $('markDelivery').checked = checked;
+    $('deliveryFieldsM').classList.toggle('hidden', !checked);
+    $('deliveryFields').classList.toggle('hidden', !checked);
+  }
+  if (source === 'desktop' && $('markDelivery').checked) populateDeliveryFields('desktop');
+  if (source === 'mobile' && $('markDeliveryM').checked) populateDeliveryFields('mobile');
+};
+
+function populateDeliveryFields(source) {
+  const client = State.client.client;
+  if (!client) return;
+  const drivers = client.drivers || [];
+  const slots = (client.timeSlots || '8-9 AM,9-10 AM,10-11 AM,11-12 PM,1-2 PM,2-3 PM,3-4 PM,4-5 PM')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const dSel = source === 'desktop' ? $('driverSelect') : $('driverSelectM');
+  const sSel = source === 'desktop' ? $('timeSlotSelect') : $('timeSlotSelectM');
+  if (dSel) dSel.innerHTML = drivers.length
+    ? drivers.map(d => `<option value="${esc(d.name)}">${esc(d.name)}</option>`).join('')
+    : '<option value="">No drivers</option>';
+  if (sSel) sSel.innerHTML = slots.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+}
+
+/* ---------- BILL GENERATION ---------- */
+App.generateBill = () => {
+  const client = State.client.client;
+  if (!client) return;
+  if (!State.client.cart.length) return toast(App.t('cartEmpty'), 'error');
+
+  const cur = client.currency || 'BHD';
+  const name = ($('custName').value || $('custNameM').value || '').trim();
+  const phone = ($('custPhone').value || $('custPhoneM').value || '').trim();
+  const address = ($('custAddress').value || $('custAddressM').value || '').trim();
+  const delivery = $('markDelivery').checked || $('markDeliveryM').checked;
+  const driverName = delivery ? ($('driverSelect').value || $('driverSelectM').value || '') : '';
+  const slot = delivery ? ($('timeSlotSelect').value || $('timeSlotSelectM').value || '') : '';
+
+  const applied = $('applyDiscount').checked || $('applyDiscountM').checked;
+  const pct = readDiscountValue();
+  const subtotal = State.client.cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const discountAmount = applied ? subtotal * pct / 100 : 0;
+  const total = subtotal - discountAmount;
+
+  const number = Storage.getCounter(client.id) + 1;
+  Storage.setCounter(client.id, number);
+
+  const bill = {
+    id: uid(),
+    number,
+    date: new Date().toISOString(),
+    items: clone(State.client.cart),
+    subtotal,
+    discountPercent: applied ? pct : null,
+    discountAmount,
+    total,
+    currency: cur,
+    customer: { name: name || App.t('walkIn'), phone, address },
+    delivery, driverName, timeSlot: slot,
+    status: delivery ? 'Pending' : 'Picked Up',
+    paymentStatus: 'Pending',
+    paymentMethod: '',
+    paymentDate: null,
+    ready: '24 hours'
+  };
+
+  const bills = Storage.getBills(client.id);
+  bills.unshift(bill);
+  Storage.saveBills(client.id, bills);
+
+  // Reset UI
+  State.client.cart = [];
+  App.renderPosCart();
+  ['custName','custPhone','custAddress','custNameM','custPhoneM','custAddressM'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+  ['markDelivery','markDeliveryM'].forEach(id => { const e = $(id); if (e) e.checked = false; });
+  ['applyDiscount','applyDiscountM'].forEach(id => { const e = $(id); if (e) e.checked = false; });
+  ['deliveryFields','deliveryFieldsM','discountBox','discountBoxM'].forEach(id => { const e = $(id); if (e) e.classList.add('hidden'); });
+
+  if (window.innerWidth < 901) App.closeMobileCart();
+
+  openBillViewer(bill, client);
+  toast(App.t('billCreated') + ' #' + number, 'success');
+};
+
+/* ---------- BILL VIEWER ---------- */
+function openBillViewer(bill, client) {
+  State.client.viewingBill = bill;
+  State.client.viewingClient = client;
+  renderBillViewerBody();
+  App.openModal('billViewer');
+}
+
+function renderBillViewerBody() {
+  const bill = State.client.viewingBill;
+  const client = State.client.viewingClient;
+  if (!bill || !client) return;
+  const cur = bill.currency || client.currency || 'BHD';
+
+  const itemsHtml = bill.items.map(i => `
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--c-border);font-size:.85rem">
+      <span>${esc(i.name)} (${esc(i.service)}) × ${i.qty}</span>
+      <strong>${(i.price * i.qty).toFixed(3)}</strong>
+    </div>`).join('');
+
+  const discountRow = bill.discountPercent
+    ? `<div style="display:flex;justify-content:space-between;color:var(--c-success);font-size:.85rem;margin-top:6px">
+        <span>${App.t('discount')} ${bill.discountPercent}%</span>
+        <span>-${bill.discountAmount.toFixed(3)} ${cur}</span>
+      </div>` : '';
+
+  const paymentBtn = bill.paymentStatus === 'Pending'
+    ? `<button class="btn btn-outline" type="button" onclick="App.openPaymentModal(${bill.number})" style="flex:1">💵 ${App.t('markPaid')}</button>`
+    : '';
+
+  $('billViewerBody').innerHTML = `
+    <div class="printable">
+      <div style="text-align:center;margin-bottom:12px">
+        ${client.logo ? `<img src="${esc(client.logo)}" style="max-height:60px;margin:0 auto 8px;display:block">` : ''}
+        <h2 style="margin-bottom:2px">${esc(client.shopName)}</h2>
+        <p style="color:var(--c-text-muted);font-size:.82rem">${esc(client.address || '')}</p>
+        <p style="color:var(--c-text-muted);font-size:.82rem">📞 ${esc(Storage.getMaster().whatsapp)}</p>
+        <hr style="border:none;border-top:1px dashed var(--c-border-2);margin:12px 0">
+        <h3>Bill #${bill.number}</h3>
+        <p style="font-size:.82rem;color:var(--c-text-muted)">${formatDateTime(bill.date)}</p>
+        ${bill.customer.name ? `<p style="font-size:.85rem;margin-top:4px"><strong>${esc(bill.customer.name)}</strong>${bill.customer.phone ? ' · ' + esc(bill.customer.phone) : ''}</p>` : ''}
+        ${bill.customer.address ? `<p style="font-size:.78rem;color:var(--c-text-muted)">${esc(bill.customer.address)}</p>` : ''}
+        ${bill.delivery ? `<p style="font-size:.82rem;margin-top:4px">🚚 ${esc(bill.driverName)} · ${esc(bill.timeSlot)}</p>` : ''}
+      </div>
+      <hr style="border:none;border-top:1px dashed var(--c-border-2);margin:10px 0">
+      ${itemsHtml}
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:.85rem;color:var(--c-text-muted)">
+        <span>${App.t('subtotal')}</span><span>${bill.subtotal.toFixed(3)} ${cur}</span>
+      </div>
+      ${discountRow}
+      <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:2px solid var(--c-text);font-weight:800;font-size:1rem">
+        <span>${App.t('total')}</span><span>${bill.total.toFixed(3)} ${cur}</span>
+      </div>
+      ${bill.paymentStatus === 'Paid'
+        ? `<p style="text-align:center;margin-top:8px;color:var(--c-success);font-weight:700;font-size:.82rem">💳 ${esc(bill.paymentMethod)} · ${formatDate(bill.paymentDate)}</p>`
+        : `<p style="text-align:center;margin-top:8px;color:var(--c-warn);font-weight:700;font-size:.82rem">Payment Pending</p>`}
+      <p style="text-align:center;margin-top:12px;font-size:.82rem">🧼 Ready in ${esc(bill.ready)}</p>
+      <p style="text-align:center;margin-top:4px;font-weight:700">Thank you!</p>
+    </div>
+    <div class="modal-actions no-print">
+      <button class="btn btn-primary" type="button" onclick="App.printBill()" style="flex:1">🖨️ Print</button>
+      <button class="btn btn-accent" type="button" onclick="App.downloadPDF()" style="flex:1">📄 PDF</button>
+      <button class="btn btn-outline" type="button" onclick="App.shareWhatsApp()" style="flex:1">📲 WhatsApp</button>
+    </div>
+    <div class="modal-actions no-print">
+      ${paymentBtn}
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('billViewer')" style="flex:1">${App.t('close')}</button>
+    </div>`;
+}
+
+App.printBill = () => window.print();
+
+App.downloadPDF = () => {
+  const bill = State.client.viewingBill;
+  const client = State.client.viewingClient;
+  if (!bill || !client) return toast('No bill open', 'error');
+  if (!window.jspdf || !window.jspdf.jsPDF) return toast('PDF library not loaded', 'error');
+  const { jsPDF } = window.jspdf;
+  const cur = bill.currency || client.currency || 'BHD';
+
+  const doc = new jsPDF({ unit: 'mm', format: [80, 220] });
+  let y = 10;
+  doc.setFontSize(13); doc.setFont(undefined, 'bold');
+  doc.text(client.shopName, 40, y, { align: 'center' }); y += 5;
+  doc.setFontSize(8); doc.setFont(undefined, 'normal');
+  if (client.address) { doc.text(client.address, 40, y, { align: 'center' }); y += 4; }
+  doc.text(Storage.getMaster().whatsapp, 40, y, { align: 'center' }); y += 6;
+  doc.setDrawColor(180); doc.line(5, y, 75, y); y += 4;
+
+  doc.setFontSize(10); doc.setFont(undefined, 'bold');
+  doc.text('Bill #' + bill.number, 5, y); y += 4;
+  doc.setFont(undefined, 'normal'); doc.setFontSize(8);
+  doc.text(formatDateTime(bill.date), 5, y); y += 4;
+  if (bill.customer.name) { doc.text(bill.customer.name + (bill.customer.phone ? ' · ' + bill.customer.phone : ''), 5, y); y += 4; }
+  if (bill.customer.address) { doc.text(bill.customer.address, 5, y); y += 4; }
+  if (bill.delivery) { doc.text(bill.driverName + ' · ' + bill.timeSlot, 5, y); y += 4; }
+  doc.line(5, y, 75, y); y += 4;
+
+  doc.setFontSize(8);
+  bill.items.forEach(i => {
+    const name = (i.name + ' (' + i.service + ')').slice(0, 26);
+    doc.text(name, 5, y);
+    doc.text('x' + i.qty, 48, y);
+    doc.text((i.price * i.qty).toFixed(3), 75, y, { align: 'right' }); y += 4;
+    if (y > 200) { doc.addPage([80, 220]); y = 10; }
+  });
+
+  doc.line(5, y, 75, y); y += 4;
+  doc.text('Subtotal:', 5, y); doc.text(bill.subtotal.toFixed(3) + ' ' + cur, 75, y, { align: 'right' }); y += 4;
+  if (bill.discountPercent) {
+    doc.text('Discount ' + bill.discountPercent + '%:', 5, y);
+    doc.text('-' + bill.discountAmount.toFixed(3) + ' ' + cur, 75, y, { align: 'right' }); y += 4;
+  }
+  doc.setFont(undefined, 'bold'); doc.setFontSize(10);
+  doc.text('TOTAL:', 5, y); doc.text(bill.total.toFixed(3) + ' ' + cur, 75, y, { align: 'right' }); y += 6;
+  doc.setFont(undefined, 'normal'); doc.setFontSize(8);
+  doc.text(bill.paymentStatus === 'Paid' ? 'Paid: ' + bill.paymentMethod : 'Payment: Pending', 5, y); y += 4;
+  doc.setFontSize(7);
+  doc.text('Thank you!', 40, y, { align: 'center' });
+
+  doc.save('Bill-' + bill.number + '.pdf');
+  toast('📄 PDF downloaded', 'success');
+};
+
+App.shareWhatsApp = () => {
+  const bill = State.client.viewingBill;
+  const client = State.client.viewingClient;
+  if (!bill || !client) return;
+  const cur = bill.currency || client.currency || 'BHD';
+  const lines = [];
+  lines.push('🧺 *' + client.shopName + '*');
+  if (client.address) lines.push('📍 ' + client.address);
+  lines.push('📞 ' + Storage.getMaster().whatsapp);
+  lines.push('');
+  if (bill.customer.name) lines.push('*Customer:* ' + bill.customer.name);
+  if (bill.customer.phone) lines.push('📞 ' + bill.customer.phone);
+  lines.push('*Bill #' + bill.number + '*');
+  lines.push('');
+  bill.items.forEach(i => lines.push('▪ ' + i.name + ' (' + i.service + ') × ' + i.qty + ' = ' + (i.price * i.qty).toFixed(3) + ' ' + cur));
+  lines.push('');
+  lines.push('Subtotal: ' + bill.subtotal.toFixed(3) + ' ' + cur);
+  if (bill.discountPercent) lines.push('Discount ' + bill.discountPercent + '%: -' + bill.discountAmount.toFixed(3) + ' ' + cur);
+  lines.push('*Total: ' + bill.total.toFixed(3) + ' ' + cur + '*');
+  lines.push(bill.paymentStatus === 'Paid' ? '💳 Paid: ' + bill.paymentMethod : '💳 Pending');
+  if (bill.delivery) lines.push('🚚 ' + bill.driverName + ' · ' + bill.timeSlot);
+  lines.push('');
+  lines.push('*Thank you!*');
+  window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+};
+
+App.openPaymentModal = (billNo) => {
+  State.client.pendingPaymentNo = billNo;
+  $('payBillNo').textContent = billNo;
+  App.openModal('paymentModal');
+};
+
+App.confirmPayment = () => {
+  const billNo = State.client.pendingPaymentNo;
+  const client = State.client.viewingClient;
+  if (!billNo || !client) return;
+  const method = $('payMethod').value;
+  const bills = Storage.getBills(client.id);
+  const idx = bills.findIndex(b => b.number === billNo);
+  if (idx === -1) return;
+  bills[idx].paymentStatus = 'Paid';
+  bills[idx].paymentMethod = method;
+  bills[idx].paymentDate = new Date().toISOString();
+  Storage.saveBills(client.id, bills);
+  State.client.viewingBill = bills[idx];
+  renderBillViewerBody();
+  App.closeModal('paymentModal');
+  toast(App.t('paymentRecorded'), 'success');
+};
+
+/* ---------- MASTER: BILL VIEWER ---------- */
+App.viewMasterBill = (cid, billNo) => {
+  const client = Storage.getClient(cid);
+  if (!client) return;
+  const bill = Storage.getBills(cid).find(b => b.number === billNo);
+  if (!bill) return;
+  openBillViewer(bill, client);
+};
+
+/* ---------- ADMIN / CLIENT ADMIN ---------- */
+$('adminBtn').addEventListener('click', () => {
+  if (State.client.isStaff) return toast(App.t('staffBlocked'), 'error');
+  if (State.client.isAdmin) {
+    showAdminMenu();
+  } else {
+    $('adminPassInput').value = '';
+    App.openModal('adminLoginModal');
+    setTimeout(() => $('adminPassInput').focus(), 100);
+  }
+});
+
+App.confirmAdminLogin = () => {
+  const client = State.client.client;
+  if (!client) return;
+  const pass = $('adminPassInput').value;
+  if (pass === client.ownerPassword) {
+    State.client.isAdmin = true;
+    State.client.isStaff = false;
+    $('staffBadge').classList.add('hidden');
+    App.closeModal('adminLoginModal');
+    App.renderPosItems();
+    toast(App.t('adminEnabled'), 'success');
+  } else {
+    toast(App.t('wrongPassword'), 'error');
+  }
+};
+
+function showAdminMenu() {
+  State.client.viewingBill = null;
+  State.client.viewingClient = null;
+  $('billViewerBody').innerHTML = `
+    <h2 style="margin-bottom:14px">⚙️ Admin Menu</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('billViewer');App.clearCart()" style="justify-content:flex-start">🧾 New Order</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('billViewer');App.openItemEditor('${State.client.client.id}')" style="justify-content:flex-start">➕ Add Item</button>
+      <button class="btn btn-outline" type="button" onclick="App.openClientShopSettings()" style="justify-content:flex-start">⚙️ Shop Settings</button>
+      <button class="btn btn-outline" type="button" onclick="App.logoutClient()" style="justify-content:flex-start;color:var(--c-danger)">🔒 Logout</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('billViewer')">${App.t('close')}</button>
+    </div>`;
+  App.openModal('billViewer');
+}
+
+App.openClientShopSettings = () => {
+  const client = State.client.client;
+  if (!client) return;
+  $('billViewerBody').innerHTML = `
+    <h2>${App.t('settings')}</h2>
+    <div class="field"><label>${App.t('shopName')}</label><input id="csShopName" value="${esc(client.shopName)}"></div>
+    <div class="field"><label>${App.t('address')}</label><input id="csAddress" value="${esc(client.address || '')}"></div>
+    <div class="field"><label>${App.t('logo')}</label><input type="file" id="csLogo" accept="image/*"></div>
+    <div class="field"><label>${App.t('timeSlots')}</label><input id="csTimeSlots" value="${esc(client.timeSlots || '')}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="button" onclick="App.saveClientShopSettings()">${App.t('save')}</button>
+      <button class="btn btn-outline" type="button" onclick="App.closeModal('billViewer')">${App.t('cancel')}</button>
+    </div>`;
+};
+
+App.saveClientShopSettings = async () => {
+  const client = State.client.client;
+  if (!client) return;
+  const clients = Storage.getClients();
+  const idx = clients.findIndex(c => c.id === client.id);
+  if (idx === -1) return;
+  clients[idx].shopName = $('csShopName').value.trim() || clients[idx].shopName;
+  clients[idx].address = $('csAddress').value.trim();
+  clients[idx].timeSlots = $('csTimeSlots').value.trim();
+  const file = $('csLogo').files[0];
+  if (file) {
+    try { clients[idx].logo = await readFileAsDataURL(file); }
+    catch(e) { return toast('Logo upload failed', 'error'); }
+  }
+  Storage.saveClients(clients);
+  State.client.client = clients[idx];
+  $('shopNameText').textContent = clients[idx].shopName;
+  if (clients[idx].logo) {
+    $('shopLogo').src = clients[idx].logo;
+    $('shopLogo').style.display = 'block';
+    $('shopNameText').style.display = 'none';
+  }
+  App.closeModal('billViewer');
+  toast(App.t('saved'), 'success');
+};
+
+App.logoutClient = () => {
+  State.mode = null;
+  State.client = {
+    client: null, isAdmin: false, isStaff: false,
+    cart: [], activeCategory: 'all', quickAdd: false,
+    pendingItemId: null, editingItemId: null,
+    viewingBill: null, viewingClient: null,
+    pendingPaymentNo: null, editingClientId: null, editingBillNo: null
+  };
+  App.closeModal('billViewer');
+  $('clientApp').classList.remove('active');
+  $('authScreen').classList.remove('hidden');
+  $('clientShopId').value = '';
+  $('clientPass').value = '';
+};
+
+/* ---------- DRIVER ---------- */
+App.loadDriverOrders = () => {
+  if (!State.driver.client) return;
+  const bills = Storage.getBills(State.driver.client.id)
+    .filter(b => b.driverName === State.driver.name);
+  const pickups = bills.filter(b => b.status === 'Pending');
+  const deliveries = bills.filter(b => b.status === 'Picked Up' || b.status === 'Out for Delivery');
+  $('driverPickups').innerHTML = pickups.map(b => renderDriverCard(b)).join('') ||
+    '<div class="empty-state">No pending pickups.</div>';
+  $('driverDeliveries').innerHTML = deliveries.map(b => renderDriverCard(b)).join('') ||
+    '<div class="empty-state">No deliveries in progress.</div>';
+};
+
+function renderDriverCard(bill) {
+  const cur = bill.currency || (State.driver.client && State.driver.client.currency) || 'BHD';
+  const actions = [];
+  if (bill.status === 'Pending') actions.push(`<button class="btn btn-primary btn-sm" type="button" onclick="App.updateBillStatus(${bill.number},'Picked Up')">✅ Picked Up</button>`);
+  if (bill.status === 'Picked Up') actions.push(`<button class="btn btn-primary btn-sm" type="button" onclick="App.updateBillStatus(${bill.number},'Delivered')">📦 Delivered</button>`);
+  if (bill.customer.address) actions.push(`<button class="btn btn-outline btn-sm" type="button" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bill.customer.address)}','_blank')">🗺️ Map</button>`);
+
+  return `<div class="driver-card">
+    <div class="driver-card-head">
+      <strong>#${bill.number}</strong>
+      <span class="pill pill-warn">${bill.status}</span>
+    </div>
+    <div style="font-weight:600;margin-bottom:4px">${esc(bill.customer.name)}</div>
+    <div style="color:var(--c-text-muted);font-size:.82rem">📞 ${esc(bill.customer.phone || '')}</div>
+    <div style="color:var(--c-text-muted);font-size:.82rem">📍 ${esc(bill.customer.address || 'No address')}</div>
+    <div style="color:var(--c-text-muted);font-size:.82rem">🕒 ${esc(bill.timeSlot || '')}</div>
+    <div style="margin:8px 0;font-weight:700">${bill.total.toFixed(3)} ${cur}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${actions.join('')}</div>
+  </div>`;
+}
+
+App.switchDriverTab = (tab) => {
+  State.driver.activeTab = tab;
+  $('driverPickups').classList.toggle('hidden', tab !== 'pickups');
+  $('driverDeliveries').classList.toggle('hidden', tab !== 'deliveries');
+  $('dTabPickups').classList.toggle('active', tab === 'pickups');
+  $('dTabDeliveries').classList.toggle('active', tab === 'deliveries');
+};
+
+App.updateBillStatus = (billNo, status) => {
+  const client = State.driver.client;
+  if (!client) return;
+  const bills = Storage.getBills(client.id);
+  const idx = bills.findIndex(b => b.number === billNo);
+  if (idx === -1) return;
+  bills[idx].status = status;
+  Storage.saveBills(client.id, bills);
+  App.loadDriverOrders();
+  toast(App.t('saved'), 'success');
+};
+
+/* ---------- MASTER SETTINGS ---------- */
+App.openMasterSettings = () => {
+  const m = Storage.getMaster();
+  $('msWa').value = m.whatsapp;
+  $('msNewPass').value = '';
+  App.openModal('masterSettingsModal');
+};
+
+App.saveMasterSettings = () => {
+  const m = Storage.getMaster();
+  const wa = $('msWa').value.trim();
+  const np = $('msNewPass').value.trim();
+  if (wa) m.whatsapp = wa;
+  if (np) m.password = np;
+  Storage.saveMaster(m);
+  App.closeModal('masterSettingsModal');
+  toast(App.t('saved'), 'success');
+};
+
+/* ---------- BACKUP / RESTORE ---------- */
+App.openBackupModal = () => App.openModal('backupModal');
+
+App.exportBackup = () => {
+  const backup = {
+    version: 3,
+    exported: new Date().toISOString(),
+    master: Storage.getMaster(),
+    lang: App.getLang(),
+    clients: Storage.getClients(),
+    clientData: {}
+  };
+  Storage.getClients().forEach(c => {
+    backup.clientData[c.id] = {
+      items: Storage.getItems(c.id),
+      bills: Storage.getBills(c.id),
+      counter: Storage.getCounter(c.id),
+      quickAdd: Storage.getQuickAdd(c.id)
+    };
+  });
+  try {
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'laundry-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(App.t('backupExported'), 'success');
+  } catch(e) { toast('Export failed', 'error'); }
+};
+
+App.importBackup = (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data.clients || !Array.isArray(data.clients)) throw new Error('Invalid backup file');
+      showConfirm('This will REPLACE all current data. Continue?', () => {
+        if (data.master) Storage.saveMaster(data.master);
+        if (data.lang) localStorage.setItem(KEYS.lang, data.lang);
+        Storage.saveClients(data.clients);
+        Object.entries(data.clientData || {}).forEach(([cid, d]) => {
+          if (d.items) Storage.saveItems(cid, d.items);
+          if (d.bills) Storage.saveBills(cid, d.bills);
+          if (typeof d.counter === 'number') Storage.setCounter(cid, d.counter);
+          if (typeof d.quickAdd === 'boolean') Storage.setQuickAdd(cid, d.quickAdd);
+        });
+        toast(App.t('backupRestored'), 'success');
+        setTimeout(() => location.reload(), 800);
+      });
+    } catch(e) { toast(App.t('invalidBackup'), 'error'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+};
+
+/* ---------- CONFIRM HELPER ---------- */
+function showConfirm(message, onYes) {
+  $('confirmMsg').textContent = message;
+  $('confirmYes').onclick = () => {
+    App.closeModal('confirmModal');
+    onYes();
+  };
+  App.openModal('confirmModal');
+}
+
+/* ---------- FILE HELPER ---------- */
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('File read failed'));
+    r.readAsDataURL(file);
+  });
+}
+
+/* ---------- GLOBAL KEYBOARD ---------- */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const open = document.querySelector('.modal.show');
+    if (open) {
+      open.classList.remove('show');
+      if (open.id === 'mobileCart') App.closeMobileCart();
+    }
+  }
+});
+
+/* ---------- SYNC INPUTS (desktop ↔ mobile) ---------- */
+function syncInputs(desktopId, mobileId) {
+  const d = $(desktopId), m = $(mobileId);
+  if (!d || !m) return;
+  d.addEventListener('input', () => { m.value = d.value; });
+  m.addEventListener('input', () => { d.value = m.value; });
+}
+// Only sync text inputs — checkboxes and number inputs have their own handlers
+['custName','custPhone','custAddress'].forEach(name => syncInputs(name, name + 'M'));
+
+/* ---------- EXPOSE APP GLOBALLY ---------- */
+window.App = App;
+
+/* ---------- INIT ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  App.applyLanguage();
+  // Handle shop param
+  const params = new URLSearchParams(location.search);
+  const shopParam = params.get('shop');
+  if (shopParam) {
+    $('clientShopId').value = shopParam;
+    App.switchAuthTab('client');
+  }
+});
+
+// Handle DOMContentLoaded if document already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    App.applyLanguage();
+    const params = new URLSearchParams(location.search);
+    const shopParam = params.get('shop');
+    if (shopParam) {
+      $('clientShopId').value = shopParam;
+      App.switchAuthTab('client');
+    }
+  });
+} else {
+  App.applyLanguage();
+  const params = new URLSearchParams(location.search);
+  const shopParam = params.get('shop');
+  if (shopParam) {
+    $('clientShopId').value = shopParam;
+    App.switchAuthTab('client');
+  }
+}
+
+})();
+</script>
+</body>
+</html>
